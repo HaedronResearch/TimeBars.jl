@@ -42,7 +42,7 @@ Below `TimeSeriesBar` there is `TimeTypeBar` which does imply a `Dates.TimeType`
 To use these types, you subtype one of these abstract types and define `SeriesBars.index` for your subtype. Of course you may define or override methods for your subtype. A simple example is in `src/bar/concrete/ohlc.jl`. You can also use the concrete types directly if they match your use case.
 
 ## Single and Multi Index
-For a single index bar series, `SeriesBars.index` is simple to define; it is just returns the chosen index column.
+For a single index bar series, `SeriesBars.index` is simple to define; it is just returns the index column.
 
 Sometimes we may want multi column indices. For now, I accomplish this with `NamedTuple` of a subset of columns. StructArrays work well with NamedTuple element types, so I think this works fine. The `SeriesBars.index` function needs to define the unique index of the time series bars. The multi index functionality is something I am still working out, so how this works may change in the future (for example, using a separate type for the index part of an `IndexedBar`).
 
