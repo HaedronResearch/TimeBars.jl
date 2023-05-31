@@ -1,0 +1,11 @@
+name = "SeriesBars"
+uuid = "a2607882-149d-4a04-8ee4-d97a19d2799b"
+authors = ["kevindirect <git@kevindirect.com>"]
+version = "0.1.0"
+
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+ShiftedArrays = "1277b4bf-5013-50f5-be3d-901d8477a67a"
+StructArrays = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
+Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
