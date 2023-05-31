@@ -10,3 +10,9 @@ A bar attached to a unique index.
 """
 abstract type IndexedBar <: Bar end
 
+"$(TYPEDSIGNATURES)"
+index(bar::IndexedBar) = index(bar)
+
+"$(TYPEDSIGNATURES)"
+index(arr::StructArray{<:IndexedBar}) = index(arr)
+

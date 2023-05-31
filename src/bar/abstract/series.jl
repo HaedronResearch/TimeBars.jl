@@ -5,12 +5,6 @@ An IndexedBar where the index is ordinal / sequential.
 """
 abstract type SeriesBar <: IndexedBar end
 
-"$(TYPEDSIGNATURES)"
-index(bar::SeriesBar) = index(bar)
-
-"$(TYPEDSIGNATURES)"
-index(arr::StructArray{<:SeriesBar}) = index(arr)
-
 """
 $(TYPEDSIGNATURES)
 Base.isless for `SeriesBar`, enables default sorting.
