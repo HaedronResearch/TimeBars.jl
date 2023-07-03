@@ -2,6 +2,7 @@
 """
 $(TYPEDEF)
 $(TYPEDFIELDS)
+A concrete open, high, low, close (OHLC) Bar implementation.
 """
 struct OHLCBar{Idx<:Dates.AbstractDateTime,P<:AbstractFloat} <: TimeTypeBar{Idx}
 	dt::Idx
@@ -11,17 +12,27 @@ struct OHLCBar{Idx<:Dates.AbstractDateTime,P<:AbstractFloat} <: TimeTypeBar{Idx}
 	close::P
 end
 
+"""
+$(TYPEDSIGNATURES)
+"""
 index(bar::OHLCBar) = bar.dt # required
 open(bar::OHLCBar) = bar.open
 high(bar::OHLCBar) = bar.high
 low(bar::OHLCBar) = bar.low
 close(bar::OHLCBar) = bar.close
 
+"""
+$(TYPEDSIGNATURES)
+"""
 index(arr::StructArray{<:OHLCBar}) = arr.dt # required
 open(arr::StructArray{<:OHLCBar}) = arr.open
 high(arr::StructArray{<:OHLCBar}) = arr.high
 low(arr::StructArray{<:OHLCBar}) = arr.low
 close(arr::StructArray{<:OHLCBar}) = arr.close
+
+# Basic validation of our type:
+@assert isvalid(TimeTypeBar, OHLCBar)
+@assert isvalid(StructArray{<:TimeTypeBar}, StructArray{<:OHLCBar})
 
 # Tables.istable(::Type{MyTable})
 
@@ -32,7 +43,7 @@ close(arr::StructArray{<:OHLCBar}) = arr.close
 $(TYPEDSIGNATURES)
 Aggregate (downsample) a set of OHLCBars
 """
-function agg(arr::AbstractArray{<:OHLCBar})
+function agg(arr::StructArray{<:OHLCBar})
 	OHLCBar(
 		last(index(arr)),
 		first(open(arr)),

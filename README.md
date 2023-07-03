@@ -22,6 +22,7 @@ Basically, it seemed like exactly what I wanted from a table. It is simple to us
 To summarize the purpose of this package, we want to provide:
 * A structured type tree for time series and their row elements, that admits dispatch and allows users to easily subtype to create efficient and maintainable (low-code) data pipelines
 * Related to the previous, we want to provide some common index-relative operations
+* We want the type tree to be easy to add to, enabling methods to be "pushed upstream" as far as possible
 * An efficient underlying implementation; this is supplied by `StructArrays.jl`
 * A simple interface to work with time series that is idiomatic with Julia
 
@@ -39,12 +40,19 @@ Subtyping `SeriesBar`, we have `TimeSeriesBar`. This is a `SeriesBar` whose inde
 Below `TimeSeriesBar` there is `TimeTypeBar` which does imply a `Dates.TimeType` is part of the indexing values.
 
 ## Using SeriesBars
-To use these types, you subtype one of these abstract types and define `SeriesBars.index` for your subtype. Of course you may define or override methods for your subtype. A simple example is in `src/bar/concrete/ohlc.jl`. You can also use the concrete types directly if they match your use case.
+To use these types, you subtype one of these abstract types and define the `index` method for your subtype. Of course you may define or override methods for your subtype. A simple example is in `src/bar/concrete/ohlc.jl`. You can also use the concrete types directly if they match your use case.
 
 ## Single and Multi Index
-For a single index bar series, `SeriesBars.index` is simple to define; it is just returns the index column.
+For a single index bar series, `index` is simple to define; it is just returns the index column.
 
 Sometimes we may want multi column indices. For now, I accomplish this with `NamedTuple` of a subset of columns. StructArrays work well with NamedTuple element types, so I think this works fine. The `SeriesBars.index` function needs to define the unique index of the time series bars. The multi index functionality is something I am still working out, so how this works may change in the future (for example, using a separate type for the index part of an `IndexedBar`).
+
+## Functionality
+* deduplication
+* lag/lead
+* downsample
+* regularity checking
+* groupby
 
 ## Transducers.jl
 I am experimenting with using `Transducers.jl` for operations I am commonly using. Transducers provides a functional interface for operations on sequences. Hopefully, we can avoid the definition of too many operations in `SeriesBars.jl` and instead have it be easily interoperable with `Transducers.jl` and other existing packages.

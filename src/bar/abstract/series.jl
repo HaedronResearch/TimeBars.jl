@@ -1,20 +1,23 @@
 """
 $(TYPEDEF)
-An IndexedBar where the index is ordinal / sequential.
-(i.e. an indexed family: https://en.wikipedia.org/wiki/Indexed_family)
+An `IndexedBar` where the index is ordinal / sequential.
+
+Conditions that must be true for `StructArray{<:SeriesBar}` validity (in addition to all inherited conditions from the parent bar):
+* index is ordinal / sequential (uniquely sortable)
 """
 abstract type SeriesBar <: IndexedBar end
 
 """
 $(TYPEDSIGNATURES)
-Base.isless for `SeriesBar`, enables default sorting.
-The index of `SeriesBar` must define `<` or `isless`.
+`Base.isless` for `SeriesBar`, enables default sorting.
+The index type of `SeriesBar` must define `<` or `isless`.
+Defining this method enables sortability for SeriesBars.
 """
 Base.isless(a::SeriesBar, b::SeriesBar) = index(a) < index(b)
 
 """
 $(TYPEDSIGNATURES)
-Lag a series, does not pre-sort by default
+XXX Lag a series, does not pre-sort by default
 """
 function lag(arr::StructArray{<:SeriesBar}, n::Integer=1; sorted=false, default=ShiftedArrays.default(arr))
 	ShiftedArrays.lag(sorted ? sort(arr; dims=1) : arr, n)
@@ -22,7 +25,7 @@ end
 
 """
 $(TYPEDSIGNATURES)
-Lead a series, does not pre-sort by default
+XXX Lead a series, does not pre-sort by default
 """
 function lead(arr::StructArray{<:SeriesBar}, n::Integer=1; sorted=false, default=ShiftedArrays.default(arr))
 	ShiftedArrays.lead(sorted ? sort(arr; dims=1) : arr, n)
@@ -57,4 +60,12 @@ function downsample(arr::StructArray{<:SeriesBar}, τ; part::Function=ceil, sel:
 	λ = PartitionBy(x->part(index(x), τ)) |> Map(sel)
 	copy(λ, StructArray, arr)
 end
+
+"""
+$(TYPEDSIGNATURES)
+Check if an object is a valid `StructArray{<:SeriesBar}`.
+
+See `SeriesBar` for conditions that must be true for validity.
+"""
+Base.isvalid(arr::StructArray{<:SeriesBar}) = invoke(Base.isvalid, Tuple{StructArray{<:supertype(SeriesBar)}}, arr) && issorted(arr)
 
