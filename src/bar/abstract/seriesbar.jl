@@ -3,9 +3,17 @@ $(TYPEDEF)
 An `IndexedBar` where the index is ordinal / sequential.
 
 Conditions that must be true for `StructArray{<:SeriesBar}` validity (in addition to all inherited conditions from the parent bar):
-* index is ordinal / sequential (uniquely sortable)
+* index is sequential (sortable)
 """
 abstract type SeriesBar <: IndexedBar end
+
+"""
+$(TYPEDSIGNATURES)
+Check if an object is a valid `StructArray{<:SeriesBar}`.
+
+See `SeriesBar` for conditions that must be true for validity.
+"""
+Base.isvalid(arr::StructArray{<:SeriesBar}) = invoke(Base.isvalid, Tuple{StructArray{<:supertype(SeriesBar)}}, arr) && issorted(arr |> index)
 
 """
 $(TYPEDSIGNATURES)
@@ -60,12 +68,4 @@ function downsample(arr::StructArray{<:SeriesBar}, τ; part::Function=ceil, sel:
 	λ = PartitionBy(x->part(index(x), τ)) |> Map(sel)
 	copy(λ, StructArray, arr)
 end
-
-"""
-$(TYPEDSIGNATURES)
-Check if an object is a valid `StructArray{<:SeriesBar}`.
-
-See `SeriesBar` for conditions that must be true for validity.
-"""
-Base.isvalid(arr::StructArray{<:SeriesBar}) = invoke(Base.isvalid, Tuple{StructArray{<:supertype(SeriesBar)}}, arr) && issorted(arr)
 

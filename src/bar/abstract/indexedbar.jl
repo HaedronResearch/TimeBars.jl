@@ -4,10 +4,32 @@ A `Bar` with a unique index,
 i.e. https://en.wikipedia.org/wiki/Indexed_family
 
 Conditions that must be true for `StructArray{<:IndexedBar}` validity (in addition to all inherited conditions from the parent bar):
-* has a subset of values that act as a unique index for the bar
+* has a subset of values (column(s)) that act as a unique index for the bar
+* the index is either a non-StructArray AbstractArray or a StructArray{<:NamedTuple}
 * bar equality is checked by index instead over values (implicit)
+* bar uniqueness is checked by index instead over values (implicit)
 """
 abstract type IndexedBar <: Bar end
+
+"""
+$(TYPEDSIGNATURES)
+Check if a type validly implements `IndexedBar`,
+e.g. `@assert isvalid(IndexedBar, MyIndexedBar)`.
+"""
+Base.isvalid(P::Type{<:IndexedBar}, T::Type) = T<:P && hasmethod(index, Tuple{<:T}) && hasmethod(index, Tuple{<:StructArray{<:T}})
+
+"""
+$(TYPEDSIGNATURES)
+Check if an object is a valid `StructArray{<:IndexedBar}`.
+
+See `IndexedBar` for conditions that must be true for validity.
+"""
+function Base.isvalid(arr::StructArray{<:IndexedBar})
+	parcond = invoke(Base.isvalid, Tuple{StructArray{<:supertype(IndexedBar)}}, arr)
+	idx = arr |> index
+	it = idx |> typeof
+	parcond && ((!(it <: StructArray) && it <: AbstractArray) || it <: StructArray{<:NamedTuple}) && allunique(idx)
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -64,36 +86,4 @@ Base.unique(arr::StructArray{<:IndexedBar})::StructArray = unique(SeriesBars.ind
 # Relying on the == method for dedup insead of unique(index,...) probably doesnt vectorize as efficiently.
 # """
 # Base.unique(arr::StructArray{<:IndexedBar})::StructArray = invoke(unique, Tuple{AbstractArray}, arr)
-
-"""
-$(TYPEDSIGNATURES)
-Check if a type validly implements `IndexedBar`,
-e.g. `@assert isvalid(IndexedBar, MyIndexedBar)`.
-"""
-Base.isvalid(::Type{<:IndexedBar}, T::Type)::Bool = T<:IndexedBar && hasmethod(index, Tuple{T})
-
-"""
-$(TYPEDSIGNATURES)
-Check if a type validly implements `StructArray{<:IndexedBar}`,
-e.g. `@assert isvalid(StructArray{<:IndexedBar}, StructArray{<:MyIndexedBar})`.
-"""
-Base.isvalid(::Type{<:StructArray{<:IndexedBar}}, T::Type)::Bool = T<:StructArray{<:IndexedBar} && hasmethod(index, Tuple{<:T})
-
-"""
-$(TYPEDSIGNATURES)
-Check if an object is a valid `StructArray{<:IndexedBar}`.
-
-See `IndexedBar` for conditions that must be true for validity.
-"""
-Base.isvalid(arr::StructArray{<:IndexedBar}) = invoke(Base.isvalid, Tuple{StructArray{<:supertype(IndexedBar)}}, arr) && allunique(arr)
-
-#"""
-# XXX We would like constraints enforced at construction instead of just being able
-# to check validity...
-#"""
-# function StructArrays.StructArray{T}(args...; kwargs...) where T<:IndexedBar
-# 	sa = StructArray{T}(args; kwargs)
-# 	@assert isvalid(sa)
-# 	sa
-# end
 

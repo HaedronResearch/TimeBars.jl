@@ -12,14 +12,7 @@ $(TYPEDSIGNATURES)
 Check if a type validly implements `Bar`,
 e.g. `@assert isvalid(Bar, MyBar)`.
 """
-Base.isvalid(::Type{<:Bar}, T::Type)::Bool = T<:Bar
-
-"""
-$(TYPEDSIGNATURES)
-Check if a type validly implements `StructArray{<:Bar}`,
-e.g. `@assert isvalid(StructArray{<:Bar}, StructArray{<:MyBar})`.
-"""
-Base.isvalid(::Type{<:StructArray{<:Bar}}, T::Type)::Bool = T<:StructArray{<:Bar}
+Base.isvalid(P::Type{<:Bar}, T::Type) = T<:P
 
 """
 $(TYPEDSIGNATURES)
@@ -29,3 +22,24 @@ See `Bar` for conditions that must be true for validity.
 """
 Base.isvalid(arr::StructArray{<:Bar}) = true
 
+# """
+# $(TYPEDSIGNATURES)
+# Wraps StructArray{<:Bar} constructor in order to apply runtime asserts after construction. These asserts can be turned off by setting the `validatebars` keyword argument `false`.
+# TODO
+# """
+# function StructArrays.StructArray{T}(args...; validatebars=true, kwargs...) where T<:Bar
+# 	sa = @invoke StructArrays.StructArray{T}(arg::Any; kwargs...)
+# 	validatebars && @assert isvalid(sa) # uses most specialized isvalid method
+# 	sa
+# end
+
+# """
+# $(TYPEDSIGNATURES)
+# Wraps StructArray{<:Bar} constructor in order to apply runtime asserts after construction. These asserts can be turned off by setting the `validatebars` keyword argument `false`.
+# TODO
+# """
+# function StructArrays.StructArray{T}(c::C; validatebars=true, kwargs...) where {T<:Bar, C<:Union{Tuple, NamedTuple}}
+# 	sa = StructArrays.StructArray{T}(c; kwargs...)
+# 	validatebars && @assert isvalid(sa) # uses most specialized isvalid method
+# 	sa
+# end

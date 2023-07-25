@@ -3,7 +3,7 @@ $(TYPEDEF)
 A `SeriesBar` where the index is a time series.
 
 Conditions that must be true for `StructArray{<:TimeSeriesBar}` validity (in addition to all inherited conditions from the parent bar):
-* index contains (or is) a temporal value
+* index element type is or contains a temporal value
 
 Here we are deliberately abstract/agnostic about what is meant by "temporal value" for the sake of generality, subtypes will enforce what `TimeSeriesBar` actually looks like.
 """

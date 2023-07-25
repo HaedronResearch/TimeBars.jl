@@ -32,7 +32,7 @@ close(arr::StructArray{<:OHLCBar}) = arr.close
 
 # Basic validation of our type:
 @assert isvalid(TimeTypeBar, OHLCBar)
-@assert isvalid(StructArray{<:TimeTypeBar}, StructArray{<:OHLCBar})
+# note: calling isvalid(...) on a StructArray{OHLCBar} value (instead of type) will verify more useful properties
 
 # Tables.istable(::Type{MyTable})
 
