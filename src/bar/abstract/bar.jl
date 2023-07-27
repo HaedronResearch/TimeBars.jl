@@ -22,6 +22,18 @@ See `Bar` for conditions that must be true for validity.
 """
 Base.isvalid(arr::StructArray{<:Bar}) = true
 
+"""
+$(TYPEDSIGNATURES)
+Convert between `StructArray{<:Bar}` with different `Bar` subtypes.
+
+Will not work (throws error) if (pseudocode): fields(S) ⊆ fields(T),
+i.e. fields of the source must be a superset of fields of the target
+(same names and compatible types).
+
+Probably just as good if `{T<:Any, S<:Any}` however we want to avoid type piracy.
+"""
+Base.convert(::Type{<:StructArray{T}}, bars::StructArray{S}) where {T<:Bar, S<:Bar} = StructArray{T}(StructArrays.components(bars))
+
 # """
 # $(TYPEDSIGNATURES)
 # Wraps StructArray{<:Bar} constructor in order to apply runtime asserts after construction. These asserts can be turned off by setting the `validatebars` keyword argument `false`.
