@@ -1,4 +1,4 @@
-name = "SeriesBars"
+name = "TimeBars"
 uuid = "a2607882-149d-4a04-8ee4-d97a19d2799b"
 authors = ["kevindirect <git@kevindirect.com>"]
 version = "0.1.0"

@@ -1,4 +1,4 @@
-# SeriesBars.jl
+# TimeBars.jl
 Disclaimer: This package is early in development and I am experimenting with how things work.
 
 ## Why this Package?
@@ -39,13 +39,13 @@ Subtyping `SeriesBar`, we have `TimeSeriesBar`. This is a `SeriesBar` whose inde
 
 Below `TimeSeriesBar` there is `TimeTypeBar` which does imply a `Dates.TimeType` is part of the indexing values.
 
-## Using SeriesBars
-To use these types, you subtype one of these abstract types and define the `index` method for your subtype. Of course you may define or override methods for your subtype. A simple example is in `src/bar/concrete/ohlc.jl`. You can also use the concrete types directly if they match your use case.
+## Using TimeBars
+To use these types, you subtype one of these abstract types and define the `index` method for your subtype. Of course you may define or override methods for your subtype. A simple example is in `src/bar/concrete/ohlc.jl`.
 
 ## Single and Multi Index
 For a single index bar series, `index` is simple to define; it is just returns the index column.
 
-Sometimes we may want multi column indices. For now, I accomplish this with `NamedTuple` of a subset of columns. StructArrays work well with NamedTuple element types, so I think this works fine. The `SeriesBars.index` function needs to define the unique index of the time series bars. The multi index functionality is something I am still working out, so how this works may change in the future (for example, using a separate type for the index part of an `IndexedBar`).
+Sometimes we may want multi column indices. For now, I accomplish this with `NamedTuple` of a subset of columns. StructArrays work well with NamedTuple element types, so I think this works fine. The `index` function needs to define the unique index of the time series bars. The multi index functionality is something I am still working out, so how this works may change in the future (for example, using a separate type for the index part of an `IndexedBar`).
 
 ## Functionality
 * deduplication
@@ -55,7 +55,22 @@ Sometimes we may want multi column indices. For now, I accomplish this with `Nam
 * groupby
 
 ## Transducers.jl
-I am experimenting with using `Transducers.jl` for operations I am commonly using. Transducers provides a functional interface for operations on sequences. Hopefully, we can avoid the definition of too many operations in `SeriesBars.jl` and instead have it be easily interoperable with `Transducers.jl` and other existing packages.
+I am experimenting with using `Transducers.jl` for operations I am commonly using. Transducers provides a functional interface for operations on sequences. Hopefully, we can avoid the definition of too many operations in this package and instead have it be easily interoperable with `Transducers.jl` and other existing packages.
+
+## Data Field Constraints
+This package is intended to supply abstract types and methods that can supply a lot of generic functionality. One of the challenges is that abstract Bars cant easily and generically support constraints on the data fields in child bars types (only concrete types have fields). Nevertheless, having the abiltiy to constrain and dispatch on abstract bars that have known data fields would be useful. For example, we can guarantee that a particular family of bars would have this or that data field that we need in calculations of some function. We can then define methods for that subset of bars and cheap `convert` methods (cheap because StructArrays are all SOA) from superset bars.
+
+Currently, I use the same method of setting constraints for data fields as index fields. That is to have some `isvalid` methods that check for the existence of accessor methods. Using isvalid to assert constraints is imperfect in general. While it is only one line, the user has to remember to include it after defining their type. In practice, the requirements for concrete bars are simple and straightforward so it is hard to get implementation wrong in any case.
+
+The bigger issue is that including data field constraints in the abstract type tree makes is not an orthogonal design. There may be cases where we want the same data field constraints on different branches of the Bar type tree. This isnt a problem yet, but it easily can be. There are a few other ways to constrain fieldtypes of subtype bars.
+
+ One way is to consider enforcing data field constraints in methods using trait dispatching. This is conceptually the cleanest and most flexible, but it would force user methods to be tied to some traits package (Julia has no official traits in Base or canonical traits methodology).
+
+The next conceptually best way would be to change the Bar type tree and semantics of Bars. A Bar consists of some fields. An IndexedBar of some indexing fields and some data fields. It may be better to fork the components of the bar so that some components hold only data and some hold only indices. One or both components could be used as a valid bar. This would make the design orthogonal and could work. Still, there are two issues. The first is that it would require a lot of changes and would increase complexity. The second more important issue is that StructArrays allow nested element types, but seem to work better (and more simply) with flat structs. I would prefer to keep the structs flat because they are easier to reason about and are less likely to lead to performance pitfalls.
+
+Another way would be to only have data fields encoded in the concrete bars and use `convert` to move from higher field to minimal field bars (as long as the fields of the source is a superset of the target, this will work). Currently, the `convert` method is already defined for this kind of discard-based conversion (ie conversion where some data fields are discarded). This is easily done with StructArrays. While this would work, it has downsides. Methods dispatching on parts of a bar would have to be defined with concrete types, which forces the data field values to be of particular types.
+
+There may be a way to use type parameters to encode constraints on data fields. The downside to this is that it can get ugly with many field additions required. It's also probably not good style.
 
 ## Notes on Style
 * https://docs.julialang.org/en/v1/manual/methods/#Abstract-containers-and-element-types
