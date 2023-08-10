@@ -3,41 +3,36 @@
 $(TYPEDEF)
 $(TYPEDFIELDS)
 A concrete open, high, low, close (OHLC) Bar implementation.
+We use one-letter abbreviations to not conflict with Base.{open, close}.
 """
 struct OHLCBar{Idx<:Dates.AbstractDateTime,P<:AbstractFloat} <: TimeTypeBar{Idx}
 	dt::Idx
-	open::P
-	high::P
-	low::P
-	close::P
+	o::P
+	h::P
+	l::P
+	c::P
 end
 
 """
 $(TYPEDSIGNATURES)
 """
-index(bar::OHLCBar) = bar.dt # required
-open(bar::OHLCBar) = bar.open
-high(bar::OHLCBar) = bar.high
-low(bar::OHLCBar) = bar.low
-close(bar::OHLCBar) = bar.close
+index(bar::OHLCBar) = bar.dt    # required by IndexedBar
+o(bar::OHLCBar) = bar.o         #
+h(bar::OHLCBar) = bar.h         #
+l(bar::OHLCBar) = bar.l         #
+c(bar::OHLCBar) = bar.c         #
 
 """
 $(TYPEDSIGNATURES)
 """
-index(arr::StructArray{<:OHLCBar}) = arr.dt # required
-open(arr::StructArray{<:OHLCBar}) = arr.open
-high(arr::StructArray{<:OHLCBar}) = arr.high
-low(arr::StructArray{<:OHLCBar}) = arr.low
-close(arr::StructArray{<:OHLCBar}) = arr.close
+index(arr::StructArray{<:OHLCBar}) = arr.dt    # required by IndexedBar
+o(arr::StructArray{<:OHLCBar}) = arr.o         #
+h(arr::StructArray{<:OHLCBar}) = arr.h         #
+l(arr::StructArray{<:OHLCBar}) = arr.l         #
+c(arr::StructArray{<:OHLCBar}) = arr.c         #
 
-# Basic validation of our type:
-@assert isvalid(TimeTypeBar, OHLCBar)
-# note: calling isvalid(...) on a StructArray{OHLCBar} value (instead of type) will verify more useful properties
-
-# Tables.istable(::Type{MyTable})
-
-# function subset(arr::AbstractVector{<:TimeSeriesBar})
-# end
+@assert isvalid(OHLCBar) # basic validation of our Bar type
+# calling isvalid on array values at runtime (e.g. isvalid(::StructArray{OHLCBar}) verifies more in-depth properties than calling it on the type at declare time (but is also more expensive)
 
 """
 $(TYPEDSIGNATURES)

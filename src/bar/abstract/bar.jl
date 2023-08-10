@@ -16,6 +16,12 @@ Base.isvalid(P::Type{<:Bar}, T::Type) = T<:P
 
 """
 $(TYPEDSIGNATURES)
+Check if a Bar type `T` validly implements supertype(T).
+"""
+Base.isvalid(T::Type{<:Bar}) = isvalid(supertype(T), T)
+
+"""
+$(TYPEDSIGNATURES)
 Check if an object is a valid `StructArray{<:Bar}`.
 
 See `Bar` for conditions that must be true for validity.

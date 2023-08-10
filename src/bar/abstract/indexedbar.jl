@@ -14,7 +14,7 @@ abstract type IndexedBar <: Bar end
 """
 $(TYPEDSIGNATURES)
 Check if a type validly implements `IndexedBar`,
-e.g. `@assert isvalid(IndexedBar, MyIndexedBar)`.
+e.g. `@assert isvalid(IndexedBar, MyBar)`.
 """
 Base.isvalid(P::Type{<:IndexedBar}, T::Type) = T<:P && hasmethod(index, Tuple{<:T}) && hasmethod(index, Tuple{<:StructArray{<:T}})
 
