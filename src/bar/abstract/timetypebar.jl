@@ -16,7 +16,7 @@ See `TimeTypeBar` for conditions that must be true for validity.
 """
 function Base.isvalid(arr::StructArray{<:TimeTypeBar})
 	parcond = invoke(Base.isvalid, Tuple{StructArray{<:supertype(TimeTypeBar)}}, arr)
-	it = arr |> index |> typeof
+	it = arr |> TimeBars.index |> typeof
 	parcond && ((!(it <: StructArray) && it <: AbstractArray{<:TimeType}) || it <: StructArray{<:NamedTuple} && any(it |> eltype |> fieldtypes .<: TimeType))
 end
 
@@ -26,7 +26,7 @@ Check if `arr` is regular by at least periodicity `τ`
 TODO
 """
 function isregular(arr::StructArray{<:TimeTypeBar}, τ::Dates.Period)
-	idx = index(arr)
+	idx = TimeBars.index(arr)
 end
 
 """

@@ -1,16 +1,16 @@
 # Rationale
-Disclaimer: This package is early in development and I am experimenting with how things work.
+Disclaimer: This package is in development and I am experimenting with how things work.
 
 ## Why this Package?
 There have been many approaches to working with time series that have been introduced in Julia.
 
-Of the most popular approaches, on one side you have `AbstractArray` and on the other you have `DataFrames.jl`. I use standard arrays a lot, but a table-like structure is nice for when you have columns of different types, or when you need to add lots of columns and change the structure a lot. DataFrames.jl is particularly nice for that second case. I don't use tables much in my time series work, but I do sometimes use them.
+Of the most popular approaches, on one side you have `AbstractArray` and on the other you have `DataFrames.jl`. I use standard arrays a lot, but a table-like structure is nice for when you have columns of different types, or when you need to add lots of columns and change the structure often. DataFrames.jl is particularly nice for that second case. I don't use tables much in my time series work, but I sometimes use them.
 
 However, when it comes to time series I always felt like something was missing. One thing I realized is that my main use for tables is for operations that are entirely relative to the timestamp. Things like resampling, expanding the index, shifting, groupby aggregation (over the timestamps), and so on. When all that is done, I convert to arrays and do the "real work". Most of the interesting stuff I have is for `AbstractArray`.
 
-If you look at `DataFrames.jl`, there is a lot of functionality (and complexity) that it provides that I don't need. I'm generally not adding many columns or doing very complicated querying on the DataFrame/table. I just need basic operations, that are almost always relative to a timestamp index column. I made `DateTimeDataFrames.jl` to work with `DataFrame` in that context. However, there was still things I didnt like about `DataFrames.jl`. It's large/complex, it has things I don't want/need, and I subjectively found parts of the interface unintuitive. They kind of steer you away from Julia interfaces and concepts (e.g. `filter` and broadcasting). There is also the type-instability aspect of DataFrames (perhaps the importance of which has been overblown for most table use cases).
+If you look at `DataFrames.jl`, there is a lot of functionality (and complexity) that it provides that I don't need. I'm generally not adding many columns or doing very complicated querying on the DataFrame/table. I just need basic operations, that are almost always relative to a timestamp index column. I made `DateTimeDataFrames.jl` to work with `DataFrame` in that context. However, there was still things I didnt like about `DataFrames.jl`. It's large/complex, it has things I don't want/need, and I subjectively found parts of the interface unintuitive. They kind of steer you away from Julia interfaces and concepts (e.g. `filter` and broadcasting). There is also the type-instability aspect of DataFrames (perhaps the actual relevance of which has been overblown for most table use cases).
 
-One of the things I always wanted was the ability to specialize on different kinds of tables (i.e. with different columns) when writing methods. If you don't make the columns part of the type, you lose a lot of power. I find the multiple dispatch and type functionality of Julia to be among the most powerful features of the language.
+One of the things I always wanted was the ability to specialize on different kinds of tables (i.e. with different columns) when writing methods. If you don't make the columns part of the type, you lose a lot of expressive power. I find the multiple dispatch and type functionality of Julia to be among the most powerful features of the language.
 
 There are a number of "timeseries table" packages. They do nice things, but they also tend to add on a lot I don't want (e.g. arbitrary operations like "percent change"). They end up adding on things I don't want for a table package. I just want a simple, efficient time series table package to do the basic things above.
 
@@ -22,7 +22,7 @@ Basically, it seemed like exactly what I wanted from a table. It is simple to us
 To summarize the purpose of this package, we want to provide:
 * A structured type tree for time series and their row elements, that admits dispatch and allows users to easily subtype to create efficient and maintainable (low-code) data pipelines
 * Related to the previous, we want to provide some common index-relative operations
-* We want the type tree to be easy to add to, enabling methods to be "pushed upstream" as far as possible
+* We want the type tree to be easy to add to; we want to push functionality upstream as much as possible
 * An efficient underlying implementation; this is supplied by `StructArrays.jl`
 * A simple interface to work with time series that is idiomatic with Julia
 
@@ -39,8 +39,8 @@ Subtyping `SeriesBar`, we have `TimeSeriesBar`. This is a `SeriesBar` whose inde
 
 Below `TimeSeriesBar` there is `TimeTypeBar` which does imply a `Dates.TimeType` is part of the indexing values.
 
-## Using SeriesBars
-To use these types, you subtype one of these abstract types and define the `ArrayBars.index` method for your subtype. Of course you may define or override methods for your subtype. A simple example is in `src/bar/concrete/ohlc.jl`.
+## Using TimeBars
+To use these types, you subtype one of these abstract types and define the `TimeBars.index` method for your subtype. Of course you may define or override methods for your subtype. A simple example is in `src/bar/concrete/ohlc.jl`.
 
 ## Single and Multi Index
 For a single index bar series, `index` is simple to define; it is just returns the index column.
@@ -62,7 +62,7 @@ This package is intended to supply abstract types and methods that can supply a 
 
 Currently, I use the same method of setting constraints for data fields as index fields. That is to have some `isvalid` methods that check for the existence of accessor methods. Using isvalid to assert constraints is imperfect in general. While it is only one line, the user has to remember to include it after defining their type. In practice, the requirements for concrete bars are simple and straightforward so it is hard to get implementation wrong in any case.
 
-The bigger issue is that including data field constraints in the abstract type tree makes is not an orthogonal design. There may be cases where we want the same data field constraints on different branches of the Bar type tree. This isnt a problem yet, but it easily can be. There are a few other ways to constrain fieldtypes of subtype bars.
+The bigger issue is that including data field constraints in the abstract type tree makes it not an orthogonal design. There may be cases where we want the same data field constraints on different branches of the Bar type tree. This isnt a problem yet, but it easily can be. There are a few other ways to constrain fieldtypes of subtype bars.
 
  One way is to consider enforcing data field constraints in methods using trait dispatching. This is conceptually the cleanest and most flexible, but it would force user methods to be tied to some traits package (Julia has no official traits in Base or canonical traits methodology).
 
@@ -71,6 +71,9 @@ The next conceptually best way would be to change the Bar type tree and semantic
 Another way would be to only have data fields encoded in the concrete bars and use `convert` to move from higher field to minimal field bars (as long as the fields of the source is a superset of the target, this will work). Currently, the `convert` method is already defined for this kind of discard-based conversion (ie conversion where some data fields are discarded). This is easily done with StructArrays. While this would work, it has downsides. Methods dispatching on parts of a bar would have to be defined with concrete types, which forces the data field values to be of particular types.
 
 There may be a way to use type parameters to encode constraints on data fields. The downside to this is that it can get ugly with many field additions required. It's also probably not good style.
+
+## Design
+This package is built on Julia's version of [covariant type dispatch](https://docs.julialang.org/en/v1/manual/types/#Parametric-Types).
 
 ## Notes on Style
 * https://docs.julialang.org/en/v1/manual/methods/#Abstract-containers-and-element-types

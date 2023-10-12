@@ -16,7 +16,7 @@ end
 """
 $(TYPEDSIGNATURES)
 """
-index(bar::OHLCBar) = bar.dt    # required by IndexedBar
+TimeBars.index(bar::OHLCBar) = bar.dt    # required by IndexedBar
 o(bar::OHLCBar) = bar.o         #
 h(bar::OHLCBar) = bar.h         #
 l(bar::OHLCBar) = bar.l         #
@@ -25,7 +25,7 @@ c(bar::OHLCBar) = bar.c         #
 """
 $(TYPEDSIGNATURES)
 """
-index(arr::StructArray{<:OHLCBar}) = arr.dt    # required by IndexedBar
+TimeBars.index(arr::StructArray{<:OHLCBar}) = arr.dt    # required by IndexedBar
 o(arr::StructArray{<:OHLCBar}) = arr.o         #
 h(arr::StructArray{<:OHLCBar}) = arr.h         #
 l(arr::StructArray{<:OHLCBar}) = arr.l         #

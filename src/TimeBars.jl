@@ -1,4 +1,4 @@
-module ArrayBars
+module TimeBars
 
 using Dates
 using ShiftedArrays

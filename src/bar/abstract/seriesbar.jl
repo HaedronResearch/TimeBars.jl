@@ -13,7 +13,7 @@ Check if an object is a valid `StructArray{<:SeriesBar}`.
 
 See `SeriesBar` for conditions that must be true for validity.
 """
-Base.isvalid(arr::StructArray{<:SeriesBar}) = invoke(Base.isvalid, Tuple{StructArray{<:supertype(SeriesBar)}}, arr) && issorted(arr |> index)
+Base.isvalid(arr::StructArray{<:SeriesBar}) = invoke(Base.isvalid, Tuple{StructArray{<:supertype(SeriesBar)}}, arr) && issorted(arr |> TimeBars.index)
 
 """
 $(TYPEDSIGNATURES)
@@ -21,7 +21,7 @@ $(TYPEDSIGNATURES)
 The index type of `SeriesBar` must define `<` or `isless`.
 Defining this method enables sortability for SeriesBars.
 """
-Base.isless(a::SeriesBar, b::SeriesBar) = index(a) < index(b)
+Base.isless(a::SeriesBar, b::SeriesBar) = TimeBars.index(a) < TimeBars.index(b)
 
 """
 $(TYPEDSIGNATURES)
@@ -45,7 +45,7 @@ Check if a series of bars has a regular frequency.
 This is the base method that diffs the series and checks if all the elements are equal.
 """
 function isregular(arr::StructArray{<:SeriesBar}; sorted=false)
-	idx = index(arr)
+	idx = TimeBars.index(arr)
 	diff(sorted ? sort(idx; dims=1) : idx; dims=1) |> allequal
 end
 
@@ -56,7 +56,7 @@ Maps each index to a partition, then selects a representative from each partitio
 This method uses `part` to partition indices and reduces each partition with `sel`.
 """
 function downsample(arr::StructArray{<:SeriesBar}; part::Function=ceil, sel::Function=last)
-	λ = PartitionBy(part∘index) |> Map(sel)
+	λ = PartitionBy(part∘TimeBars.index) |> Map(sel)
 	copy(λ, StructArray, arr)
 end
 
@@ -65,7 +65,7 @@ $(TYPEDSIGNATURES)
 This method uses `part(index, τ)` to partition indices and reduces each partition with `sel`.
 """
 function downsample(arr::StructArray{<:SeriesBar}, τ; part::Function=ceil, sel::Function=last)
-	λ = PartitionBy(x->part(index(x), τ)) |> Map(sel)
+	λ = PartitionBy(x->part(TimeBars.index(x), τ)) |> Map(sel)
 	copy(λ, StructArray, arr)
 end
 
