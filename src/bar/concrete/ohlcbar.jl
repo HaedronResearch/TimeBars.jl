@@ -3,7 +3,6 @@
 $(TYPEDEF)
 $(TYPEDFIELDS)
 A concrete open, high, low, close (OHLC) Bar implementation.
-We use one-letter abbreviations to not conflict with Base.{open, close}.
 """
 struct OHLCBar{Idx<:Dates.AbstractDateTime,P<:AbstractFloat} <: TimeTypeBar{Idx}
 	dt::Idx
@@ -16,23 +15,16 @@ end
 """
 $(TYPEDSIGNATURES)
 """
-TimeBars.index(bar::OHLCBar) = bar.dt    # required by IndexedBar
-o(bar::OHLCBar) = bar.o         #
-h(bar::OHLCBar) = bar.h         #
-l(bar::OHLCBar) = bar.l         #
-c(bar::OHLCBar) = bar.c         #
-
-"""
-$(TYPEDSIGNATURES)
-"""
-TimeBars.index(arr::StructArray{<:OHLCBar}) = arr.dt    # required by IndexedBar
-o(arr::StructArray{<:OHLCBar}) = arr.o         #
-h(arr::StructArray{<:OHLCBar}) = arr.h         #
-l(arr::StructArray{<:OHLCBar}) = arr.l         #
-c(arr::StructArray{<:OHLCBar}) = arr.c         #
-
+TimeBars.index(bar::OHLCBar) = bar.dt                       # required by IndexedBar
+TimeBars.index(arr::StructArray{<:OHLCBar}) = arr.dt        # required by IndexedBar
 @assert isvalid(OHLCBar) # basic validation of our Bar type
 # calling isvalid on array values at runtime (e.g. isvalid(::StructArray{OHLCBar}) verifies more in-depth properties than calling it on the type at declare time (but is also more expensive)
+
+# accessors, not required for validity but useful to have:
+o(bars::Union{OHLCBar, StructArray{<:TulipBar}}) = bars.o
+h(bars::Union{OHLCBar, StructArray{<:TulipBar}}) = bars.h
+l(bars::Union{OHLCBar, StructArray{<:TulipBar}}) = bars.l
+c(bars::Union{OHLCBar, StructArray{<:TulipBar}}) = bars.c
 
 """
 $(TYPEDSIGNATURES)

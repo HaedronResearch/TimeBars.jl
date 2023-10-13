@@ -6,7 +6,7 @@ using StructArrays
 using Transducers
 using DocStringExtensions: TYPEDEF, TYPEDFIELDS, TYPEDSIGNATURES
 
-export Bar, IndexedBar, SeriesBar, TimeSeriesBar, TimeTypeBar
+export TimeSeriesBar, TimeTypeBar
 export index, lag, lead, isregular, downsample
 
 include("bar/abstract/bar.jl")
