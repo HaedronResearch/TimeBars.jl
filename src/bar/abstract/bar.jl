@@ -51,7 +51,7 @@ i.e. fields of the source must be a superset of fields of the target
 Probably just as good if `{T<:Any, S<:Any}` however we want to avoid type piracy.
 """
 function Base.convert(::Type{T}, bars::StructArray{S}) where {T<:Bar, S<:Bar}
-	isconcretetype(T) && isconcretetype(S) || throw(ArgumentError("Bar types must be concrete"))
+	isstructtype(T) && isstructtype(S) || throw(ArgumentError("Bar types must be struct types"))
 	StructArray{T}(StructArrays.components(bars))
 end
 
