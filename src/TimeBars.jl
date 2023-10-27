@@ -9,7 +9,6 @@ using Transducers
 using DocStringExtensions: TYPEDEF, TYPEDFIELDS, TYPEDSIGNATURES
 
 export TimeSeriesBar, TimeTypeBar
-export eltypes
 export index, lag, lead, isregular, downsample
 
 include("bar/abstract/bar.jl")

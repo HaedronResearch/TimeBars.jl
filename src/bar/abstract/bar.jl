@@ -55,23 +55,17 @@ function Base.convert(::Type{T}, bars::StructArray{S}) where {T<:Bar, S<:Bar}
 	StructArray{T}(StructArrays.components(bars))
 end
 
-"""
-$(TYPEDSIGNATURES)
-Get field names of a `Bar`.
-"""
-Base.names(T::Type{<:Bar}) = T |> fieldnames
+# """
+# $(TYPEDSIGNATURES)
+# Get field names of a `StructArray{<:Bar}` table.
+# """
+# Tables.names(bars::StructArray{T}) where {T<:Bar} = T |> fieldnames
 
-"""
-$(TYPEDSIGNATURES)
-Get field names of a `StructArray{<:Bar}` table.
-"""
-Base.names(bars::StructArray{<:Bar}) = bars |> eltype |> names
-
-"""
-$(TYPEDSIGNATURES)
-Get the concrete storage types of a `StructArray{<:Bar}` table.
-"""
-eltypes(bars::StructArray{<:Bar}) = [eltype(StructArrays.component(bars, name)) for name in names]
+# """
+# $(TYPEDSIGNATURES)
+# Get the concrete storage types of a `StructArray{<:Bar}` table.
+# """
+# eltypes(bars::StructArray{<:Bar}) = [eltype(StructArrays.component(bars, name)) for name in names(bars)]
 
 """
 $(TYPEDSIGNATURES)
