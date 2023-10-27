@@ -55,18 +55,6 @@ function Base.convert(::Type{T}, bars::StructArray{S}) where {T<:Bar, S<:Bar}
 	StructArray{T}(StructArrays.components(bars))
 end
 
-# """
-# $(TYPEDSIGNATURES)
-# Get field names of a `StructArray{<:Bar}` table.
-# """
-# Tables.names(bars::StructArray{T}) where {T<:Bar} = T |> fieldnames
-
-# """
-# $(TYPEDSIGNATURES)
-# Get the concrete storage types of a `StructArray{<:Bar}` table.
-# """
-# eltypes(bars::StructArray{<:Bar}) = [eltype(StructArrays.component(bars, name)) for name in names(bars)]
-
 """
 $(TYPEDSIGNATURES)
 Display method for `StructVector{<:Bar}` table.
@@ -78,8 +66,6 @@ function Base.show(io::IO, ::MIME"text/plain", bars::StructArrays.StructVector{T
 		title=title,
 		crop=:vertical,
 		vcrop_mode=:middle,
-		show_header=true,
-		show_subheader=true,
 		show_omitted_cell_summary=false,
 	)
 end
