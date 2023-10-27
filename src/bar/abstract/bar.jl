@@ -55,6 +55,41 @@ function Base.convert(::Type{T}, bars::StructArray{S}) where {T<:Bar, S<:Bar}
 	StructArray{T}(StructArrays.components(bars))
 end
 
+"""
+$(TYPEDSIGNATURES)
+Get field names of a `Bar`.
+"""
+Base.names(T::Type{<:Bar}) = T |> fieldnames
+
+"""
+$(TYPEDSIGNATURES)
+Get field names of a `StructArray{<:Bar}` table.
+"""
+Base.names(bars::StructArray{<:Bar}) = bars |> eltype |> names
+
+"""
+$(TYPEDSIGNATURES)
+Get the concrete storage types of a `StructArray{<:Bar}` table.
+"""
+eltypes(bars::StructArray{<:Bar}) = [eltype(StructArrays.component(bars, name)) for name in names]
+
+"""
+$(TYPEDSIGNATURES)
+Display method for `StructVector{<:Bar}` table.
+"""
+function Base.show(io::IO, ::MIME"text/plain", bars::StructArrays.StructVector{T}; tf=tf_ascii_dots) where {T<:Bar}
+	title = @sprintf "StructVector{%s} of %.3g Bars" nameof(T) length(bars)
+	pretty_table(io, StructArrays.components(bars);
+		tf=tf,
+		title=title,
+		crop=:vertical,
+		vcrop_mode=:middle,
+		show_header=true,
+		show_subheader=true,
+		show_omitted_cell_summary=false,
+	)
+end
+
 # """
 # $(TYPEDSIGNATURES)
 # Wraps StructArray{<:Bar} constructor in order to apply runtime asserts after construction. These asserts can be turned off by setting the `validatebars` keyword argument `false`.

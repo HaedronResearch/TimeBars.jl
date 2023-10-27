@@ -1,12 +1,15 @@
 module TimeBars
 
 using Dates
+using Printf
+using PrettyTables
 using ShiftedArrays
 using StructArrays
 using Transducers
 using DocStringExtensions: TYPEDEF, TYPEDFIELDS, TYPEDSIGNATURES
 
 export TimeSeriesBar, TimeTypeBar
+export eltypes
 export index, lag, lead, isregular, downsample
 
 include("bar/abstract/bar.jl")
