@@ -21,7 +21,7 @@ Subtype them with your own concrete element types to gain the functionality. See
 This package is intended mainly for time series use; only the following types are exported: `TimeSeriesBar`, `TimeTypeBar`. The others exist mainly to organize functionality, but can still be subtyped directly if you want (e.g. non-time series or other uniquely indexed observations). View the docstrings of each type for their semantics and other details.
 
 ### `IndexedBar` and `TimeBars.index`
-Most useful bars directly or indirectly subtype `IndexedBar`. Any bar, `MyBar`, that subtypes `IndexedBar` (i.e. `MyBar <: IndexedBar`) must supply methods for a function called `TimeBars.index`. Specifically, the following:
+Most useful bars directly or indirectly subtype `IndexedBar`. Any `MyBar <: IndexedBar` must supply methods for a function called `TimeBars.index`. Specifically, the following:
 
 * `TimeBars.index(bar::MyIndexedBar)`: returns index field(s) of a bar
 * `TimeBars.index(arr::StructArray{<:MyIndexedBar})`: return index array of a `StructArray{<:IndexedBar}`
