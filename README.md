@@ -16,7 +16,7 @@ The type tree is a simple line (`Bar` is the root type):
 Bar >: IndexedBar >: SeriesBar >: TimeSeriesBar >: TimeTypeBar
 ```
 
-Subtype them with your own concrete element types to gain the functionality. See `src/bar/concrete/ohlc.bar.jl` for a simple example of subtyping a `TimeTypeBar`.
+Subtype them with your own struct element types to gain the functionality. See `src/bar/concrete/ohlc.bar.jl` for a simple example of subtyping a `TimeTypeBar`.
 
 This package is intended mainly for time series use; only the following types are exported: `TimeSeriesBar`, `TimeTypeBar`. The others exist mainly to organize functionality, but can still be subtyped directly if you want (e.g. non-time series or other uniquely indexed observations). View the docstrings of each type for their semantics and other details.
 
@@ -29,13 +29,13 @@ Most useful bars directly or indirectly subtype `IndexedBar`. Any `MyBar <: Inde
 For a single-valued index, we just use the values themselves. For a multi-valued index, we use a `NamedTuple` / `StructArray{<:NamedTuple}` though this may change in the future. See the docstring for `IndexedBar` and `TimeBars.index` for more details. 
 
 ### `Base.isvalid`
-* Caling `isvalid` on your concrete bar type will verify that your type validly implements the parent bar interface. You should always do this after defining your concrete type.
+* Caling `isvalid` on your struct bar type will verify that your type validly implements the parent bar interface. It is good practice to `@assert isvalid(MyBar)` after defining the struct type `MyBar`.
 * Calling `isvalid` on an instance of your bar will verify runtime attributes (can be slow).
 
 ### `Base.convert`
 `StructArray.jl`'s SOA memory layout makes it simple and efficient to convert between tables.
 #### Downconversions
-If one concrete bar type, `BarA`, is a subset of another concrete bar type, `BarB`, then `StructArray{BarB}`->`StructArray{BarA}` is free. This allows us to define our methods which only need the fields of `BarA` and efficiently use them will all superset Bars like `BarB` (`Base.convert` still need to be explicitly called, but wrapper functions dont need to know anything about the content of `BarA` or `BarB`).
+If one struct bar type, `BarA`, is a subset of another struct bar type, `BarB`, then `StructArray{BarB}`->`StructArray{BarA}` is free. This allows us to define our methods which only need the fields of `BarA` and efficiently use them will all superset Bars like `BarB` (`Base.convert` still need to be explicitly called, but wrapper functions dont need to know anything about the content of `BarA` or `BarB`).
 
 #### Upconversions
 If you want to convert to a bar with more fields (`StructArray{BarA}`->`StructArray{BarB}`), then you need to define `Base.convert` methods for this purpose. This is also typically a cheap and easy operation with StructArrays.
