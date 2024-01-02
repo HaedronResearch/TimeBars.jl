@@ -1,6 +1,6 @@
 name = "TimeBars"
 uuid = "a2607882-149d-4a04-8ee4-d97a19d2799b"
-authors = ["kevindirect <git@kevindirect.com>"]
+authors = ["K Patel <git@kevindirect.com>"]
 license = "BSD-3-Clause"
 version = "0.3.0"
 
