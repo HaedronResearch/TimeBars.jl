@@ -6,6 +6,15 @@ The idea is to provide a time series tables framework that provides a good trade
 
 For a long ramble on why I started developing this and ongoing design choices, see RATIONALE.md.
 
+## Install
+Install this package to your Julia project environment as you would any other package from a Git repo.
+
+From the Julia REPL:
+```
+julia> ]
+(MyProject) pkg> add https://github.com/HaedronResearch/TimeBars.jl
+```
+
 ## Overview
 `TimeBars.jl` supplies abstract element types to be used with `StructArray`s (from [StructArrays.jl](https://juliaarrays.github.io/StructArrays.jl/stable/)). As the abstract types move from most to least abstract, they gain functionality and assumptions. 
 
