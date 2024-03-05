@@ -41,8 +41,14 @@ end
 
 """
 $(TYPEDSIGNATURES)
+Default Impute.jl chain.
+"""
+@inline default_imputer(::Type{<:SeriesBar}) = Impute.Interpolate() ∘ Impute.NOCB() ∘ Impute.LOCF()
+
+"""
+$(TYPEDSIGNATURES)
 Check if a series of bars has a regular frequency.
-This is the base method that diffs the series and checks if all the elements are equal.
+This is the base method that diffs the index and checks if all the increments are equal.
 """
 function isregular(arr::StructArray{<:SeriesBar}; sorted=false)
 	idx = TimeBars.index(arr)

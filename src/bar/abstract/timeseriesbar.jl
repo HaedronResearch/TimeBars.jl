@@ -9,6 +9,12 @@ Here we are deliberately abstract/agnostic about what is meant by "temporal valu
 """
 abstract type TimeSeriesBar <: SeriesBar end
 
+"""
+$(TYPEDSIGNATURES)
+Default single index name (or time-related index component) for time series.
+"""
+@inline default_index(::Type{<:TimeSeriesBar}) = :dt
+
 # """
 # $(TYPEDSIGNATURES)
 # Forward fill `arr`

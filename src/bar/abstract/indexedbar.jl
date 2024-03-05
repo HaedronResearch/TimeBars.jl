@@ -48,6 +48,12 @@ For multi-valued indices, should return a NamedTuple.
 function index end
 # index(bar::IndexedBar) = index(bar)
 
+"""
+$(TYPEDSIGNATURES)
+Default single index name.
+"""
+@inline default_index(::Type{<:IndexedBar}) = :idx
+
 # """
 # $(TYPEDSIGNATURES)
 # Get the index of a `StructArray{<:IndexedBar}`.
@@ -58,6 +64,24 @@ function index end
 # For multi-valued indices, should return a StructArray{<:NamedTuple}.
 # """
 # index(arr::StructArray{<:IndexedBar}) = index(arr)
+
+# """
+# $(TYPEDSIGNATURES)
+# Display method for `StructVector{<:IndexedBar}` table.
+# TODO want the index columns to be bolded, underlined, or something.
+# """
+# function Base.show(io::IO, ::MIME"text/plain", bars::StructArrays.StructVector{T}; tf=tf_ascii_dots) where {T<:IndexedBar}
+# 	title = @sprintf "StructVector{%s} of %.3g IndexedBars" nameof(T) length(bars)
+# 	pretty_table(io, StructArrays.components(bars);
+# 		tf=tf,
+# 		title=title,
+# 		crop=:vertical,
+# 		vcrop_mode=:middle,
+# 		show_header=true,
+# 		show_subheader=true,
+# 		show_omitted_cell_summary=false,
+# 	)
+# end
 
 """
 $(TYPEDSIGNATURES)
