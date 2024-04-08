@@ -17,10 +17,20 @@ Default single index name (or time-related index component) for time series.
 
 """
 $(TYPEDSIGNATURES)
-Split bar series into partitions by `floor(idxkey(bar), τ)`.
+Split bar series into partitions by `floor(getfield(bar, idxkey), τ)`.
 """
-function parts(v::StructVector{T}, τ::Dates.Period; partkey::Symbol=default_index(T)) where {T<:TimeSeriesBar}
-	λ = PartitionBy(bar->floor(getproperty(bar, partkey), τ))
+function parts(v::StructVector{T}, τ::Dates.Period; idxkey::Symbol=default_index(T)) where {T<:TimeSeriesBar}
+	@warn "This method is a slow fallback, it should be overloaded instead of called."
+	λ = PartitionBy(bar->floor(getfield(bar, idxkey), τ))
+	v |> λ |> collect
+end
+
+"""
+$(TYPEDSIGNATURES)
+Split bar series into partitions by `floor(idx(bar), τ)`.
+"""
+function parts(v::StructVector{T}, τ::Dates.Period, f::Function) where {T<:TimeSeriesBar}
+	λ = PartitionBy(bar->floor(f(bar), τ))
 	v |> λ |> collect
 end
 
