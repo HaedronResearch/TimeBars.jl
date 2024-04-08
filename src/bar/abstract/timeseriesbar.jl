@@ -15,31 +15,19 @@ Default single index name (or time-related index component) for time series.
 """
 @inline default_index(::Type{<:TimeSeriesBar}) = :dt
 
-# """
-# $(TYPEDSIGNATURES)
-# Forward fill `arr`
-# """
-# function ffill(arr::StructArray{<:TimeSeriesBar})
-# end
-
-# """
-# $(TYPEDSIGNATURES)
-# Backward fill `arr`
-# """
-# function bfill(arr::StructArray{<:TimeSeriesBar})
-# end
+"""
+$(TYPEDSIGNATURES)
+Split bar series into partitions by `floor(idxkey(bar), τ)`.
+"""
+function parts(v::StructVector{T}, τ::Dates.Period; partkey::Symbol=default_index(T)) where {T<:TimeSeriesBar}
+	λ = PartitionBy(bar->floor(getproperty(bar, partkey), τ))
+	v |> λ |> collect
+end
 
 # """
 # Subset
 # """
 # function sub(arr::StructArray{<:TimeSeriesBar}, τ::Dates.Period)
-# end
-
-# """
-# Split `arr` into partitions
-# https://en.wikipedia.org/wiki/Partition_of_a_set
-# """
-# function parts(arr::AbstactVector{<:TimeSeriesBar}, τ::Dates.Period)
 # end
 
 # function groupby(arr::AbstactVector{<:TimeSeriesBar}, τ::Dates.Period)

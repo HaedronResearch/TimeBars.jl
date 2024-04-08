@@ -36,12 +36,8 @@ end
 
 @inline findgaps(idx::AbstractVector, τ) = findall(x->x>τ, diff(idx))
 
-@inline linear_interpolate(m, b, r::UnitRange) = [m*x+b for x=r]
-
-function index_interpolate(edges::Pair, τ)
-	f, l = edges
-	n = (l - f) ÷ τ - 1
-	linear_interpolate(τ, f, 1:n)
+@inline function index_range(edges::Pair, τ; excl_f=true, excl_l=true)
+	(first(edges)+τ*excl_f):τ:(last(edges)-τ*excl_l)
 end
 
 """
@@ -54,7 +50,7 @@ function expandinner!(sv::StructVector{T}, τ, gaps::AbstractVector{<:Integer}; 
 	for gap in gaps
 		realgap = gap + offset
 		idxseg = getproperty(sv, idxkey)[realgap:realgap+1]
-		newidx = index_interpolate(first(idxseg)=>last(idxseg), τ)
+		newidx = index_range(first(idxseg)=>last(idxseg), τ)
 		newrows = emptysa(T, idxkey=>newidx)
 		for (i, newrow) in enumerate(newrows)
 			insert!(sv, realgap+i, newrow)
@@ -71,13 +67,12 @@ Assumes single index bar type.
 """
 function expandouter(sv::StructVector{T}, τ, to::Pair; idxkey) where {T<:NamedTuple}
 	idx = getproperty(sv, idxkey)
-	prep, app = nothing, nothing
 	if first(to) < first(idx)
-		newidx = index_interpolate(first(to)=>first(idx), τ)
+		newidx = index_range(first(to)=>first(idx), τ; excl_f=false)
 		sv = vcat(emptysa(T, idxkey=>newidx), sv)
 	end
 	if last(idx) < last(to)
-		newidx = index_interpolate(last(idx)=>last(to), τ)
+		newidx = index_range(last(idx)=>last(to), τ; excl_l=false)
 		sv = vcat(sv, emptysa(T, idxkey=>newidx))
 	end
 	sv

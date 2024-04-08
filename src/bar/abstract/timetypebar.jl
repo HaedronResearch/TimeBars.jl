@@ -30,41 +30,12 @@ function isregular(arr::StructArray{<:TimeTypeBar}, τ::Dates.Period)
 end
 
 """
-$(TYPEDSIGNATURES)
-Forward fill `arr`
-TODO
-"""
-function ffill(arr::StructArray{<:TimeSeriesBar})
-end
-
-"""
-$(TYPEDSIGNATURES)
-Backward fill `arr`
-TODO
-"""
-function bfill(arr::StructArray{<:TimeSeriesBar})
-end
-
-"""
 Subset
 TODO
 """
 function sub(arr::StructArray{<:TimeSeriesBar}, τ::Dates.Period)
 end
 
-"""
-Split `arr` into partitions
-https://en.wikipedia.org/wiki/Partition_of_a_set
-TODO
-"""
-function parts(arr::AbstractVector{<:TimeSeriesBar}, τ::Dates.Period)
-end
-
 # function groupby(arr::AbstactVector{<:TimeSeriesBar}, τ::Dates.Period)
 # end
-
-# """
-# A `TimeTypeBar` with an associated `Dates.Period`, which denotes its periodicity.
-# """
-# abstract type PeriodicTimeTypeBar{Idx,Per<:Dates.Period} <: TimeTypeBar{Idx} end
 
