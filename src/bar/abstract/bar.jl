@@ -70,6 +70,16 @@ function Base.show(io::IO, ::MIME"text/plain", bars::StructArrays.StructVector{T
 	)
 end
 
+"""
+$(TYPEDSIGNATURES)
+Partition `StructVector` based on (inclusive) integer index cut points.
+"""
+function parts(v::StructVector{T}, cuts::AbstractVector{<:Integer}; partial=true, check=false) where {T<:Bar}
+	check && @assert (issorted(cuts) && allunique(cuts) && first(cuts)==firstindex(v) && (last(cuts)==lastindex(v) || !partial))
+	slices = (cuts[i]:cuts[i+1] for i=1:length(cuts)-1)
+	[@view v[slice] for slice=slices]
+end
+
 # """
 # $(TYPEDSIGNATURES)
 # Wraps StructArray{<:Bar} constructor in order to apply runtime asserts after construction. These asserts can be turned off by setting the `validatebars` keyword argument `false`.

@@ -17,40 +17,27 @@ Default single index name (or time-related index component) for time series.
 
 """
 $(TYPEDSIGNATURES)
-Split bar series, `v`, into partitions by `floor(idx, τ)`.
+Split bar series, `v`, into partitions by `floor(dti, τ)`.
 Partitions are inclusive on both ends.
-"""
-function parts(v::StructVector{T}, τ::Dates.Period, idx::AbstractVector; check=false) where {T<:TimeSeriesBar}
-	check && @assert (issorted(idx) && issorted(v)) # (assume data / index are sorted)
-	r = floor(first(idx), τ):τ:floor(last(idx), τ)
-	[@view v[searchsortedfirst(idx, s):searchsortedlast(idx, s+τ)] for s=r]
-end
 
+If `align` is set, the partitions are aligned to the calendar (in this case, false values of `partial` are ignored).
+Otherwise, partitions start at the first `dti` value.
 """
-$(TYPEDSIGNATURES)
-"""
-function parts(v::StructVector{T}, τ::Dates.Period, f::Function; check=false) where {T<:TimeSeriesBar}
-	parts(v, τ, f(v); check=check)
+function parts(v::StructVector{T}, τ::Dates.Period, dti::AbstractVector; align=true, partial=true, check=false) where {T<:TimeSeriesBar}
+	f, l = first(dti), last(dti)
+	if align
+		f, l = floor(f, τ), floor(l, τ)
+	end
+	parts(v, f:τ:l, dti; partial=align || partial, check=check)
 end
 
 """
 $(TYPEDSIGNATURES)
 Convenience fallback.
 """
-function parts(v::StructVector{T}, τ::Dates.Period; check=false, idxkey=default_index(T)) where {T<:TimeSeriesBar}
-	parts(v, τ, StructArrays.component(v, idxkey); check=check)
+function parts(v::StructVector{T}, τ::Dates.Period; align=true, partial=true, check=false, idxkey=default_index(T)) where {T<:TimeSeriesBar}
+	parts(v, τ, StructArrays.component(v, idxkey); align=align, partial=partial, check=check)
 end
-
-# function parts(v::StructVector{T}, τ::Dates.Period; idxkey::Symbol=default_index(T)) where {T<:TimeSeriesBar}
-# 	@warn "This method is a slow fallback, it should be overloaded instead of called."
-# 	λ = PartitionBy(bar->floor(getfield(bar, idxkey), τ))
-# 	v |> λ |> collect
-# end
-
-# function parts(v::StructVector{T}, τ::Dates.Period, f::Function) where {T<:TimeSeriesBar}
-# 	λ = PartitionBy(bar->floor(f(bar), τ))
-# 	v |> λ |> collect
-# end
 
 # """
 # Subset

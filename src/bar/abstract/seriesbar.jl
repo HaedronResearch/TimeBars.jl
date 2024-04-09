@@ -47,6 +47,33 @@ Default Impute.jl chain.
 
 """
 $(TYPEDSIGNATURES)
+Partition via a range over a sorted partition vector.
+"""
+function parts(v::StructVector{T}, r::AbstractRange, p::AbstractVector; partial=true, check=false) where {T<:SeriesBar}
+	check && @assert (issorted(v) && issorted(r) && issorted(p))
+	cuts = [searchsortedfirst(p, cut) for cut=r]
+	partial && last(cuts)!=lastindex(v) && push!(cuts, lastindex(v))
+	parts(v, cuts; partial=partial, check=check)
+end
+
+"""
+$(TYPEDSIGNATURES)
+Partition by stepping over a sorted partition vector.
+"""
+function parts(v::StructVector{T}, s, p::AbstractVector; partial=true, check=false) where {T<:SeriesBar}
+	parts(v, first(p):s:last(p), p; partial=partial, check=check)
+end
+
+"""
+$(TYPEDSIGNATURES)
+Applies `f(v)` to get a vector used for partitioning purposes.
+"""
+function parts(v::StructVector{T}, s, f::Function; partial=true, check=false, kwargs...) where {T<:SeriesBar}
+	parts(v, s, f(v); partial=partial, check=check, kwargs...)
+end
+
+"""
+$(TYPEDSIGNATURES)
 Check if a series of bars has a regular frequency.
 This is the base method that diffs the index and checks if all the increments are equal.
 """
