@@ -44,6 +44,7 @@ $(TYPEDSIGNATURES)
 Default Impute.jl chain.
 """
 @inline default_imputer(::Type{<:SeriesBar}) = Impute.Interpolate(;r=RoundNearest) ∘ Impute.NOCB() ∘ Impute.LOCF()
+# @inline default_imputer(::Type{<:SeriesBar}) = Impute.Interpolate() ∘ Impute.NOCB() ∘ Impute.LOCF()
 
 """
 $(TYPEDSIGNATURES)
@@ -51,7 +52,7 @@ Partition via a range over a sorted partition vector.
 """
 function parts(v::StructVector{T}, r::AbstractRange, p::AbstractVector; partial=true, check=false) where {T<:SeriesBar}
 	check && @assert (issorted(v) && issorted(r) && issorted(p))
-	cuts = [searchsortedfirst(p, cut) for cut=r]
+	cuts = [searchsortedlast(p, cut) for cut=r]
 	partial && last(cuts)!=lastindex(v) && push!(cuts, lastindex(v))
 	parts(v, cuts; partial=partial, check=check)
 end
@@ -68,7 +69,7 @@ end
 $(TYPEDSIGNATURES)
 Applies `f(v)` to get a vector used for partitioning purposes.
 """
-function parts(v::StructVector{T}, s, f::Function; partial=true, check=false, kwargs...) where {T<:SeriesBar}
+function parts(f::Function, v::StructVector{T}, s; partial=true, check=false, kwargs...) where {T<:SeriesBar}
 	parts(v, s, f(v); partial=partial, check=check, kwargs...)
 end
 
