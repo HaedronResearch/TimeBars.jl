@@ -21,6 +21,6 @@ include("bar/abstract/timeseriesbar.jl")
 include("bar/abstract/timetypebar.jl")
 # include("bar/concrete/ohlcbar.jl")
 
-include("util/impute.jl")
+include("ext/impute.jl")
 
 end
