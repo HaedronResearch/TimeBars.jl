@@ -53,8 +53,19 @@ Partition via a range over a sorted partition vector.
 function parts(v::StructVector{T}, r::AbstractRange, p::AbstractVector; partial=true, check=false) where {T<:SeriesBar}
 	check && @assert (issorted(v) && issorted(r) && issorted(p))
 	cuts = [searchsortedlast(p, cut) for cut=r]
-	partial && last(cuts)!=lastindex(v) && push!(cuts, lastindex(v))
-	parts(v, cuts; partial=partial, check=check)
+	if partial
+		if first(cuts) < firstindex(v)
+			cuts[firstindex(cuts)] = firstindex(v)
+		end
+		if last(cuts) < lastindex(v)
+			push!(cuts, lastindex(v))
+		end
+	else
+		if first(cuts) < firstindex(v)
+			popfirst!(cuts)
+		end
+	end
+	parts(v, cuts; check=check)
 end
 
 """

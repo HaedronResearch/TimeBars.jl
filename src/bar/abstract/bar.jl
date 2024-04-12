@@ -74,8 +74,8 @@ end
 $(TYPEDSIGNATURES)
 Partition `StructVector` based on (inclusive) integer index cut points.
 """
-function parts(v::StructVector{T}, cuts::AbstractVector{<:Integer}; partial=true, check=false) where {T<:Bar}
-	check && @assert (issorted(cuts) && allunique(cuts) && first(cuts)==firstindex(v) && (last(cuts)==lastindex(v) || !partial))
+function parts(v::StructVector{T}, cuts::AbstractVector{<:Integer}; check=false) where {T<:Bar}
+	check && @assert (issorted(cuts) && allunique(cuts))
 	slices = (cuts[i]:cuts[i+1] for i=1:length(cuts)-1)
 	[@view v[slice] for slice=slices]
 end

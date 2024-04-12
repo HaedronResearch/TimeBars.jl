@@ -20,15 +20,15 @@ $(TYPEDSIGNATURES)
 Split bar series, `v`, into partitions by `floor(dti, τ)`.
 Partitions are inclusive on both ends.
 
-If `align` is set, the partitions are aligned to the calendar (in this case, false values of `partial` are ignored).
-Otherwise, partitions start at the first `dti` value.
+If `align` is set, the partitions are aligned to the calendar.
+If `partial` is set, partial partitions (both ends) are included.
 """
 function parts(v::StructVector{T}, τ::Dates.Period, dti::AbstractVector; align=true, partial=true, check=false) where {T<:TimeSeriesBar}
 	f, l = first(dti), last(dti)
 	if align
 		f, l = floor(f, τ), floor(l, τ)
 	end
-	parts(v, f:τ:l, dti; partial=align || partial, check=check)
+	parts(v, f:τ:l, dti; partial=partial, check=check)
 end
 
 """
