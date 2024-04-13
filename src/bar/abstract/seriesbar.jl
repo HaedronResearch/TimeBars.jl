@@ -48,6 +48,26 @@ Default Impute.jl chain.
 
 """
 $(TYPEDSIGNATURES)
+Partition based on (inclusive) integer index cut points.
+"""
+function parts(v::StructVector{T}, cuts::AbstractVector{<:Integer}; check=false) where {T<:SeriesBar}
+	check && @assert (issorted(v) && issorted(cuts) && allunique(cuts))
+	slices = (cuts[i]:cuts[i+1] for i=1:length(cuts)-1)
+	[@view v[slice] for slice=slices]
+end
+
+"""
+$(TYPEDSIGNATURES)
+Partition via a inclusive step range over a sorted (not necessarily unique) partition vector, `p`.
+"""
+function parts(v::StructVector{T}, r::AbstractRange, p::AbstractVector; check=false) where {T<:SeriesBar}
+	check && @assert (issorted(v) && issorted(r) && issorted(p))
+	slices = (searchsortedfirst(p, r[i]):searchsortedlast(p, r[i+1]) for i=1:length(r)-1)
+	[@view v[slice] for slice=slices]
+end
+
+"""
+$(TYPEDSIGNATURES)
 Partition by stepping over a sorted partition vector.
 """
 function parts(v::StructVector{T}, s, p::AbstractVector; partial=true, check=false) where {T<:SeriesBar}
