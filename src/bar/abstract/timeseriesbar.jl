@@ -17,7 +17,7 @@ Default single index name (or time-related index component) for time series.
 
 """
 $(TYPEDSIGNATURES)
-Split bar series, `v`, into partitions by `floor(dti, τ)`.
+Split timeseries, `v`, into partitions by periodicity `τ`.
 Partitions are inclusive on both ends.
 
 If `align` is set, the partitions are aligned to the calendar.
@@ -26,9 +26,17 @@ If `partial` is set, partial partitions (both ends) are included.
 function parts(v::StructVector{T}, τ::Dates.Period, dti::AbstractVector; align=true, partial=true, check=false) where {T<:TimeSeriesBar}
 	f, l = first(dti), last(dti)
 	if align
-		f, l = floor(f, τ), floor(l, τ)
+		if partial
+			f, l = floor(f, τ), ceil(l, τ)
+		else
+			f, l = ceil(f, τ), floor(l, τ)
+		end
+	else
+		if partial
+			l += τ
+		end
 	end
-	parts(v, f:τ:l, dti; partial=partial, check=check)
+	parts(v, f:τ:l, dti; check=check)
 end
 
 """

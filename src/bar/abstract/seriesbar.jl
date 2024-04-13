@@ -48,37 +48,16 @@ Default Impute.jl chain.
 
 """
 $(TYPEDSIGNATURES)
-Partition via a range over a sorted partition vector.
-"""
-function parts(v::StructVector{T}, r::AbstractRange, p::AbstractVector; partial=true, check=false) where {T<:SeriesBar}
-	check && @assert (issorted(v) && issorted(r) && issorted(p))
-	cuts = [searchsortedlast(p, cut) for cut=r]
-	if partial
-		if first(cuts) < firstindex(v)
-			cuts[firstindex(cuts)] = firstindex(v)
-		end
-		if last(cuts) < lastindex(v)
-			push!(cuts, lastindex(v))
-		end
-	else
-		if first(cuts) < firstindex(v)
-			popfirst!(cuts)
-		end
-	end
-	parts(v, cuts; check=check)
-end
-
-"""
-$(TYPEDSIGNATURES)
 Partition by stepping over a sorted partition vector.
 """
 function parts(v::StructVector{T}, s, p::AbstractVector; partial=true, check=false) where {T<:SeriesBar}
-	parts(v, first(p):s:last(p), p; partial=partial, check=check)
+	l = partial ? last(p)+s : last(p)
+	parts(v, first(p):s:l, p; check=check)
 end
 
 """
 $(TYPEDSIGNATURES)
-Applies `f(v)` to get a vector used for partitioning purposes.
+Partition by the partition vector `f(v)`.
 """
 function parts(f::Function, v::StructVector{T}, s; partial=true, check=false, kwargs...) where {T<:SeriesBar}
 	parts(v, s, f(v); partial=partial, check=check, kwargs...)
