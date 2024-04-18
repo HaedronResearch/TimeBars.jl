@@ -10,7 +10,7 @@ using Missings
 using Impute
 using DocStringExtensions: TYPEDEF, TYPEDFIELDS, TYPEDSIGNATURES
 
-export TimeSeriesBar, TimeTypeBar
+export Bar, IndexedBar, SeriesBar, TimeSeriesBar, TimeTypeBar
 export index, lag, lead, isregular, downsample, parts
 export impute
 
