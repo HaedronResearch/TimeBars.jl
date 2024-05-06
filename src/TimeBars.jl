@@ -1,26 +1,36 @@
 module TimeBars
 
 using Dates
-using Printf
 using PrettyTables
 using ShiftedArrays
 using StructArrays
-using Transducers
 using Missings
 using Impute
-using DocStringExtensions: TYPEDEF, TYPEDFIELDS, TYPEDSIGNATURES
+import Printf: @sprintf
+import DocStringExtensions: TYPEDEF, TYPEDFIELDS, TYPEDSIGNATURES
 
 export Bar, IndexedBar, SeriesBar, TimeSeriesBar, TimeTypeBar
-export index, lag, lead, isregular, downsample, parts
-export impute
+export impute, index, lag, lead, parts, regularity
 
-include("bar/abstract/bar.jl")
-include("bar/abstract/indexedbar.jl")
-include("bar/abstract/seriesbar.jl")
-include("bar/abstract/timeseriesbar.jl")
-include("bar/abstract/timetypebar.jl")
-# include("bar/concrete/ohlcbar.jl")
+include("types/bars.jl")
 
-include("ext/impute.jl")
+include("defaults/check.jl")
+include("defaults/impute.jl")
+include("defaults/index.jl")
+
+include("util/namedtuple.jl")
+
+# Base overrides
+include("methods/base/convert.jl")
+include("methods/base/isvalid.jl")
+include("methods/base/show.jl")
+include("methods/base/isless.jl")   # enables Base.sort
+include("methods/base/unique.jl")
+
+include("methods/impute.jl")
+include("methods/index.jl")
+include("methods/laglead.jl")
+include("methods/parts.jl")
+include("methods/regularity.jl")
 
 end
