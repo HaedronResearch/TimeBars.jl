@@ -13,9 +13,13 @@ This package exists in order to satisfy the following requirements (that I haven
 
 While some table packages do have fully inferred dispatch on different table types, they tend to lack the ability to do so easily with a high degree of code reuse. I want to use type inheritance and/or traits to have fully inferred dispatch that also keeps code reuse and readability high so that these methods are easy to maintain.
 
-The StructArrays.jl package gives us the ability to store a list of arrays that are associated with the fields of a given struct. While a `StructArray` looks like an array-of-structures (AOS) it does not store the array of structs, only the underlying component arrays.
+The StructArrays.jl package gives us the ability to store a list of arrays that are associated with the fields of a given struct. While a `StructArray` looks like an array-of-structures (AOS) it does not store the array of structs, only the underlying component arrays (making it an SOA underneath the hood).
 
-Using StructArrays.jl, not only do we get to keep our table in a particular structure without having to materialize that structure, we get to use whatever underlying storage format we want! Dispatching a method to work for a particular set of columns is as easy as :`myfunction(StructArray{<:MyCols})` or `myfunction(StructArray{<:MyAbstractCols})`.
+Using StructArrays.jl, not only do we get to keep our table in a particular structure without having to materialize that structure, we get to use whatever underlying storage format we want! Creating a method to work for a particular set of columns is as easy as :`fn(StructArray{<:MyCols})` or `fn(StructArray{<:MyAbstractCols})`.
+
+This is in contrast to other tables where every table field would need to be included in the method, something like: `fn(OtherTable{a::Int, b::Float32, c<:AbstractString, ...})`. While this might give us the fully inferred dispatch we want, it is unwieldly and harder to maintain for certain applications.
+
+TimeBars.jl is for cases when the tables you are using have natural structure that is worth encoding in their own types as you will be using them within structured data pipelines (eg mirroring the structure of long running SQL tables). On the other hand, for cases when you need a high degree of adhoc flexibility the approaches offered by DataFrames.jl, TypedTables.jl, or some of the other table packages would be more appropriate.
 
 TimeBars.jl offers element types attached to methods that work with `StructArray` / `StructVector` array types to give us the time series functionality that meet the above requirements.
 
