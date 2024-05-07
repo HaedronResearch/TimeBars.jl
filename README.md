@@ -15,7 +15,7 @@ While some table packages do have fully inferred dispatch on different table typ
 
 The StructArrays.jl package gives us the ability to store a list of arrays that are associated with the fields of a given struct. While a `StructArray` looks like an array-of-structures (AOS) it does not store the array of structs, only the underlying component arrays (making it SOA underneath the hood).
 
-Using StructArrays.jl, not only do we get to keep our table in a particular structure without having to materialize that structure, we get to use whatever underlying storage format we want! Creating a method to work for a particular set of columns is as easy as :`fn(StructArray{<:MyCols})` or `fn(StructArray{<:MyAbstractCols})`.
+Using StructArrays.jl, not only do we get to keep our table in a particular structure without having to materialize that structure, we get to use whatever underlying storage format we want! Creating a method to work for a particular set of columns is as easy as: `fn(StructArray{<:MyCols})` or `fn(StructArray{<:MyAbstractCols})`.
 
 This is in contrast to other tables where every table field would need to be included in the method, something like: `fn(OtherTable{a::Int, b::Float32, c<:AbstractString, ...})`. While this might give us the fully inferred dispatch we want, it is unwieldly and harder to maintain for certain applications.
 
