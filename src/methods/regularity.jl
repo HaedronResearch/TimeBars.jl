@@ -1,9 +1,8 @@
 """
-Quantify the regularity of a DateTime index at minimum frequency `τ`,
-the ratio of existing DateTimes to the theoretical maximum (`1.0`) between the first and last (inclusive) DateTime.
-This method cannot return `0.0` because a single or empty DateTime index will always return regularity of `1.0`.
+The ratio of DateTimes that exist in a sorted DateTime vector to the maximum that could exist at a given minimum periodicity `τ` from the first to the last DateTime (inclusive).
+This function cannot return `0.0` because a single or empty DateTime vector will always return `1.0`.
 """
-function regularity(v::AbstractVector{DateTime}, τ::Period; check=false)
+function regularity(v::AbstractVector{<:Dates.AbstractDateTime}, τ::Period; check=false)
 	check && @assert issorted(v)
 	isempty(v) && return 1.
 	full = round(v[end] - v[begin], τ) + τ
