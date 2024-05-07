@@ -13,7 +13,7 @@ This package exists in order to satisfy the following requirements (that I haven
 
 While some table packages do have fully inferred dispatch on different table types, they tend to lack the ability to do so easily with a high degree of code reuse. I want to use type inheritance and/or traits to have fully inferred dispatch that also keeps code reuse and readability high so that these methods are easy to maintain.
 
-The StructArrays.jl package gives us the ability to store a list of arrays that are associated with the fields of a given struct. While a `StructArray` looks like an array-of-structures (AOS) it does not store the array of structs, only the underlying component arrays (making it an SOA underneath the hood).
+The StructArrays.jl package gives us the ability to store a list of arrays that are associated with the fields of a given struct. While a `StructArray` looks like an array-of-structures (AOS) it does not store the array of structs, only the underlying component arrays (making it SOA underneath the hood).
 
 Using StructArrays.jl, not only do we get to keep our table in a particular structure without having to materialize that structure, we get to use whatever underlying storage format we want! Creating a method to work for a particular set of columns is as easy as :`fn(StructArray{<:MyCols})` or `fn(StructArray{<:MyAbstractCols})`.
 
