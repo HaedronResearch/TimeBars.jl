@@ -59,13 +59,38 @@ function impute(bars::StructVector{T}, τ, to::Union{Pair,Nothing}=nothing, impu
 	sa = StructArray{NamedTuple}(bars; allowmissings=true)
 	sa = expandinner!(sa, τ, gaps; idxkey=idxkey)
 	!isnothing(to) && (sa = expandouter(sa, τ, to; idxkey=idxkey))
-	StructArray{T}(imputer(sa); disallowmissings=true)
+	StructArray{T}(Impute.impute!(sa, imputer); disallowmissings=true)
+	# StructArray{T}(imputer(sa); disallowmissings=true)
 end
 
-# function impute(bars::StructVector{T}, τ, to::Union{Pair,Nothing}=nothing, imputer=default_imputer(T); idxkey=default_index(T)) where {T<:SeriesBar}
-# 	gaps = findgaps(getproperty(bars, idxkey), τ)
-# 	sa = StructArray{NamedTuple}(bars; allowmissings=true)
-# 	sa = expandinner!(sa, τ, gaps; idxkey=idxkey)
-# 	!isnothing(to) && (sa = expandouter(sa, τ, to; idxkey=idxkey))
-# 	StructArray{T}(Impute.impute!(sa, imputer); disallowmissings=true)
+function impute(bars::StructVector{T}, τ, method::Symbol, to::Union{Pair,Nothing}=nothing; idxkey=default_index(T), rng=Random.default_rng()) where {T<:SeriesBar}
+	if method == :default
+		impute(bars, τ, default_imputer(T), to; idxkey=idxkey)
+	elseif method == :sub
+		impute(bars, τ, Impute.Substitute(; statistic=Impute.defaultstats), to; idxkey=idxkey)
+	elseif method == :srs
+		impute(bars, τ, Impute.SRS(; rng=rng), to; idxkey=idxkey)
+	end
+end
+
+# struct LocalSRS{R<:AbstractRNG} <: Impute.Imputor
+# 	rng::R
+# 	n::Int
+# end
+
+# LocalSRS(; rng=Random.default_rng(), n=6) = LocalSRS(rng, n)
+
+# function _impute!(data::AbstractVector{Union{T, Missing}}, imp::LocalSRS) where T
+# 	obs_values = collect(skipmissing(data))
+# 	if !isempty(obs_values)
+# 		for i in eachindex(data)
+# 			if ismissing(data[i])
+# 				flim = max(firstindex(obs_values),i-(imp.n÷2))
+# 				llim = min(lastindex(obs_values),i+(imp.n÷2))
+# 				data[i] = rand(imp.rng, obs_values[flim, llim])
+# 			end
+# 		end
+# 	end
+
+# 	return data
 # end

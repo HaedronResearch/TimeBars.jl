@@ -1,6 +1,7 @@
 """
 $(TYPEDSIGNATURES)
 Default single index name.
+This function will eventually be removed.
 """
 @inline default_index(::Type{<:IndexedBar}) = :idx
 

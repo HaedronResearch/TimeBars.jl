@@ -29,8 +29,8 @@ This is not a `StructArray{<:NamedTuple}` constructor because we want to avoid t
 function emptysa(::Type{T}, data::Pair{Symbol, <:AbstractArray}...) where {T<:NamedTuple}
 	arr = StructArray{T}(undef, size(last(first(data))))
 	for (k,v) in data
-		# getproperty(arr, k) .= v
-		setproperty!(arr, k, v)
+		getproperty(arr, k) .= v
+		# setproperty!(arr, k, v)
 	end
 	arr
 end
