@@ -1,6 +1,6 @@
-findgaps(idx::AbstractVector, τ) = findall(>(τ), diff(idx))
+@stable findgaps(idx::AbstractVector, τ) = findall(>(τ), diff(idx))
 
-function index_range(edges::Pair, τ; excl_f=true, excl_l=true)
+@stable function index_range(edges::Pair, τ; excl_f=true, excl_l=true)
 	(first(edges)+τ*excl_f):τ:(last(edges)-τ*excl_l)
 end
 
@@ -9,7 +9,7 @@ $(TYPEDSIGNATURES)
 Expand inner index range.
 Assumes single index bar type.
 """
-function expandinner!(sv::StructVector{T}, τ, gaps::AbstractVector{<:Integer}; idxkey) where {T<:NamedTuple}
+@stable function expandinner!(sv::StructVector{T}, τ, gaps::AbstractVector{<:Integer}; idxkey) where {T<:NamedTuple}
 	offset = 0
 	for gap in gaps
 		realgap = gap + offset
@@ -29,7 +29,7 @@ $(TYPEDSIGNATURES)
 Expand outer index range.
 Assumes single index bar type.
 """
-function expandouter(sv::StructVector{T}, τ, to::Pair; idxkey) where {T<:NamedTuple}
+@stable function expandouter(sv::StructVector{T}, τ, to::Pair; idxkey) where {T<:NamedTuple}
 	idx = StructArrays.component(sv, idxkey)
 	if first(to) < first(idx)
 		newidx = index_range(first(to)=>first(idx), τ; excl_f=false)
@@ -44,6 +44,12 @@ end
 
 """
 $(TYPEDSIGNATURES)
+Do not expand outer index range. Used for dispatch.
+"""
+@stable expandouter(sa::StructArray, ::Any, ::Nothing; kwargs...) = sa
+
+"""
+$(TYPEDSIGNATURES)
 Fallback imputation method.
 Assumes single index bar type.
 
@@ -54,23 +60,26 @@ Assumes single index bar type.
 4. Imputation, by default via Impute.Chain: linear interpolation → last observation carried forward (locf) → next observation carried backward (nocb)
 5. Convert back to `StructVector{<:SeriesBar}`.
 """
-function impute(bars::StructVector{T}, τ, to::Union{Pair,Nothing}=nothing, imputer=default_imputer(T); idxkey=default_index(T)) where {T<:SeriesBar}
+@stable function impute(bars::StructVector{T}, τ, imputer=default_imputer(T), to=nothing; idxkey=default_index(T)) where {T<:SeriesBar}
 	gaps = findgaps(StructArrays.component(bars, idxkey), τ)
-	sa = StructArray{NamedTuple}(bars; allowmissings=true)
+	sa = allowmiss(bars)
 	sa = expandinner!(sa, τ, gaps; idxkey=idxkey)
-	!isnothing(to) && (sa = expandouter(sa, τ, to; idxkey=idxkey))
-	StructArray{T}(Impute.impute!(sa, imputer); disallowmissings=true)
-	# StructArray{T}(imputer(sa); disallowmissings=true)
+	sa = expandouter(sa, τ, to; idxkey=idxkey)
+	Impute.impute!(sa, imputer)
+	disallowmiss(T, sa)
 end
 
-function impute(bars::StructVector{T}, τ, method::Symbol, to::Union{Pair,Nothing}=nothing; idxkey=default_index(T), rng=Random.default_rng()) where {T<:SeriesBar}
-	if method == :default
-		impute(bars, τ, default_imputer(T), to; idxkey=idxkey)
+@stable function impute(bars::StructVector{T}, τ, method::Symbol, to=nothing; idxkey=default_index(T), rng=Random.default_rng()) where {T<:SeriesBar}
+	if method == :locf
+		imp = Impute.LOCF()
 	elseif method == :sub
-		impute(bars, τ, Impute.Substitute(; statistic=Impute.defaultstats), to; idxkey=idxkey)
+		imp = Impute.Substitute(; statistic=Impute.defaultstats)
 	elseif method == :srs
-		impute(bars, τ, Impute.SRS(; rng=rng), to; idxkey=idxkey)
+		imp = Impute.SRS(; rng=rng)
+	else
+		imp = default_imputer(T)
 	end
+	impute(bars, τ, imp, to; idxkey=idxkey)
 end
 
 # struct LocalSRS{R<:AbstractRNG} <: Impute.Imputor

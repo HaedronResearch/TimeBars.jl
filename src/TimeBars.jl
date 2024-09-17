@@ -7,6 +7,7 @@ using ShiftedArrays
 using StructArrays
 using Missings
 using Impute
+using DispatchDoctor
 using MovingWindowsBase
 import Printf: @sprintf
 import DocStringExtensions: TYPEDEF, TYPEDFIELDS, TYPEDSIGNATURES
