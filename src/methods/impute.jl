@@ -60,12 +60,12 @@ Assumes single index bar type.
 4. Imputation, by default via Impute.Chain: linear interpolation → last observation carried forward (locf) → next observation carried backward (nocb)
 5. Convert back to `StructVector{<:SeriesBar}`.
 """
-@stable function impute(bars::StructVector{T}, τ, imputer=default_imputer(T), to=nothing; idxkey=default_index(T)) where {T<:SeriesBar}
+@stable function impute(bars::StructVector{T}, τ, to=nothing, imputer=default_imputer(T); idxkey=default_index(T)) where {T<:SeriesBar}
 	gaps = findgaps(StructArrays.component(bars, idxkey), τ)
 	sa = allowmiss(bars)
 	sa = expandinner!(sa, τ, gaps; idxkey=idxkey)
 	sa = expandouter(sa, τ, to; idxkey=idxkey)
-	Impute.impute!(sa, imputer)
+	sa = Impute.impute(sa, imputer)
 	disallowmiss(T, sa)
 end
 
@@ -79,7 +79,7 @@ end
 	else
 		imp = default_imputer(T)
 	end
-	impute(bars, τ, imp, to; idxkey=idxkey)
+	impute(bars, τ, to, imp; idxkey=idxkey)
 end
 
 # struct LocalSRS{R<:AbstractRNG} <: Impute.Imputor
