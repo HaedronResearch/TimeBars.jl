@@ -2,7 +2,7 @@ name = "TimeBars"
 uuid = "a2607882-149d-4a04-8ee4-d97a19d2799b"
 license = "BSD-3-Clause"
 authors = ["Kevin Patel <git@kevindirect.com>"]
-version = "0.3.5"
+version = "0.3.6"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"

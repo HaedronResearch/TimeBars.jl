@@ -1,33 +1,170 @@
 @stable findgaps(idx::AbstractVector, τ) = findall(>(τ), diff(idx))
 
-@stable function index_range(edges::Pair, τ; excl_f=true, excl_l=true)
-	(first(edges)+τ*excl_f):τ:(last(edges)-τ*excl_l)
+@stable function index_range((f,l)::Pair, τ; excl_f=true, excl_l=true)
+	(f+τ*excl_f):τ:(l-τ*excl_l)
 end
 
 """
 $(TYPEDSIGNATURES)
-Expand inner index range.
-Assumes single index bar type.
+Return filled-in index based on period, τ.
+Return new index and filled-in (hole) locations.
 """
-@stable function expandinner!(sv::StructVector{T}, τ, gaps::AbstractVector{<:Integer}; idxkey) where {T<:NamedTuple}
+@stable function fillin(idx::AbstractVector, τ)
+	newidx = idx |> copy
+	gaps = findgaps(idx, τ)
 	offset = 0
+	holes = Int[]
 	for gap in gaps
 		realgap = gap + offset
-		idxseg = StructArrays.component(sv, idxkey)[realgap:realgap+1]
-		newidx = index_range(first(idxseg)=>last(idxseg), τ)
-		newrows = emptysa(T, idxkey=>newidx)
-		for (i, newrow) in enumerate(newrows)
-			insert!(sv, realgap+i, newrow)
+		gapr = index_range(idx[gap]=>idx[gap+1], τ)
+		for (i, val) in enumerate(gapr)
+			insert!(newidx, realgap+i, val)
+			push!(holes, realgap+i)
 		end
-		offset += length(newidx)
+		offset += length(gapr)
 	end
-	sv
+	newidx, holes
+end
+
+"""
+$(TYPEDSIGNATURES)
+Return index with head and tail extended based on period, τ, and range `to`.
+Return new index and hole locations.
+XXX - Untested
+"""
+@stable function fillout(idx::AbstractVector, τ, (f,l)::Pair)
+	newidx = idx
+	holes = Int[]
+	if f < first(idx)
+		headidx = index_range(f=>first(idx), τ; excl_f=false)
+		holes = append!(holes, eachindex(headidx))
+		newidx = vcat(headidx, newidx)
+	end
+	if last(idx) < l
+		tailidx = index_range(last(idx)=>l, τ; excl_l=false)
+		holes = append!(holes, eachindex(tailidx) .+ length(newidx))
+		newidx = vcat(newidx, tailidx)
+	end
+	newidx, holes
+end
+
+"""
+$(TYPEDSIGNATURES)
+Return `out` with interior holes filled in from `vals`
+"""
+@stable function fillin!(out::AbstractVector, vals::AbstractVector, holes::AbstractVector{<:Integer})
+	i = firstindex(out)
+	a = firstindex(vals)
+	h = firstindex(holes)
+	while h ≤ length(holes)
+		if i != holes[h]
+			out[i] = vals[a]
+			a += 1
+		else
+			h += 1
+		end
+		i += 1
+	end
+	while i ≤ length(out)
+		out[i] = vals[a]
+		a += 1
+		i += 1
+	end
+	out
+end
+
+"""
+$(TYPEDSIGNATURES)
+Return a `Vector{Union{Missing, T}}`` with missing values at the interior `holes` indices.
+"""
+@stable function holedvalues(vals::AbstractVector{T}, holes::AbstractVector{<:Integer}) where {T}
+	mvals = Vector{Union{Missing, T}}(missing, length(vals) + length(holes))
+	fillin!(mvals, vals, holes)
+end
+
+"""
+$(TYPEDSIGNATURES)
+Return a `Vector{Union{Missing, T}}`` with missing values at the interior `holes` indices, with any initial offset from `holesout`.
+XXX - Untested
+"""
+@stable function holedvalues(vals::AbstractVector{T}, holes::AbstractVector{<:Integer}, holesout::AbstractVector{<:Integer}) where {T}
+	inner = length(vals) + length(holes)
+	mvals = Vector{Union{Missing, T}}(missing, inner + length(holesout))
+	offset = 0 
+	for i = eachindex(holesout)
+		i != holesout[i] && break
+		offset = i
+	end
+	fillin!(view(mvals, 1+offset:offset+inner), vals, holes)
+	mvals
+end
+
+"""
+$(TYPEDSIGNATURES)
+Imputation for a columntable of vectors (inner imputation only).
+"""
+@stable function imputevec(bars::T, τ, imputer; idxkey)::T where {T<:NamedTuple}
+	newidx, holes = fillin(getfield(bars, idxkey), τ)
+
+	newvals = Vector[]
+	for k in keys(bars)
+		if k == idxkey
+			vals = newidx
+		else
+			mvals = holedvalues(getfield(bars, k), holes)
+			vals = Impute.impute(mvals, imputer) |> disallowmissing
+		end
+		push!(newvals, vals)
+	end
+	NamedTuple{keys(bars)}(Tuple(newvals))
+end
+
+"""
+$(TYPEDSIGNATURES)
+Imputation for a columntable of vectors (inner imputation only).
+"""
+@stable function imputevec(bars::T, τ, ::Nothing, imputer; idxkey)::T where {T<:NamedTuple}
+	imputevec(bars, τ, imputer; idxkey=idxkey)
+end
+
+"""
+$(TYPEDSIGNATURES)
+Imputation for a columntable of vectors (inner and outer imputation).
+XXX - Untested
+"""
+@stable function imputevec(bars::NamedTuple, τ, to::Pair, imputer; idxkey) where {T<:NamedTuple}
+	newidx, holes = fillin(getfield(bars, idxkey), τ)
+	newidx, holesout = fillout(newidx, τ, to)
+
+	newvals = Vector[]
+	for k in keys(bars)
+		if k == idxkey
+			vals = newidx
+		else
+			mvals = holedvalues(getfield(bars, k), holes, holesout)
+			vals = Impute.impute(mvals, imputer) |> disallowmissing
+		end
+		push!(newvals, vals)
+	end
+	NamedTuple{keys(bars)}(Tuple(newvals))
+end
+
+"""
+$(TYPEDSIGNATURES)
+StructVector imputation.
+Assumes single index bar type
+XXX - using a non-nothing `to` is untested.
+"""
+@stable function imputevec(bars::StructVector{T}, τ, to=nothing, imputer=default_imputer(T); idxkey=default_index(T)) where {T<:SeriesBar}
+	nt = StructArrays.components(bars)
+	imputevec(nt, τ, to, imputer; idxkey=idxkey) |> StructVector{T}
 end
 
 """
 $(TYPEDSIGNATURES)
 Expand outer index range.
 Assumes single index bar type.
+XXX - Deprecated
 """
 @stable function expandouter(sv::StructVector{T}, τ, to::Pair; idxkey) where {T<:NamedTuple}
 	idx = StructArrays.component(sv, idxkey)
@@ -48,28 +185,19 @@ Do not expand outer index range. Used for dispatch.
 """
 @stable expandouter(sa::StructArray, ::Any, ::Nothing; kwargs...) = sa
 
-"""
-$(TYPEDSIGNATURES)
-Fallback imputation method.
-Assumes single index bar type.
-
-## Steps
-1. Convert to `StructArray{<:NamedTuple}` to allow working with `Missing` values.
-2. Expands gaps within the index with the periodicity / increment `τ`.
-3. Expands index to the range `to`, if provided.
-4. Imputation, by default via Impute.Chain: linear interpolation → last observation carried forward (locf) → next observation carried backward (nocb)
-5. Convert back to `StructVector{<:SeriesBar}`.
-"""
-@stable function impute(bars::StructVector{T}, τ, to=nothing, imputer=default_imputer(T); idxkey=default_index(T)) where {T<:SeriesBar}
-	gaps = findgaps(StructArrays.component(bars, idxkey), τ)
-	sa = allowmiss(bars)
-	sa = expandinner!(sa, τ, gaps; idxkey=idxkey)
+@stable function impute_old(bars::StructVector{T}, τ, to, imputer=default_imputer(T); idxkey=default_index(T)) where {T<:SeriesBar}
+	sa = imputevec(bars, τ, nothing, imputer; idxkey=idxkey)
 	sa = expandouter(sa, τ, to; idxkey=idxkey)
 	sa = Impute.impute(sa, imputer)
 	disallowmiss(T, sa)
 end
 
-@stable function impute(bars::StructVector{T}, τ, method::Symbol, to=nothing; idxkey=default_index(T), rng=Random.default_rng()) where {T<:SeriesBar}
+"""
+$(TYPEDSIGNATURES)
+Imputation.
+Assumes single index bar type
+"""
+@stable function impute(bars::StructVector{T}, τ, method::Symbol=:default, to=nothing; idxkey=default_index(T), rng=Random.default_rng()) where {T<:SeriesBar}
 	if method == :locf
 		imp = Impute.LOCF()
 	elseif method == :sub
@@ -79,7 +207,20 @@ end
 	else
 		imp = default_imputer(T)
 	end
-	impute(bars, τ, to, imp; idxkey=idxkey)
+	imputevec(bars, τ, to, imp; idxkey=idxkey)
+end
+
+@stable function impute_old(bars::StructVector{T}, τ, method::Symbol, to=nothing; idxkey=default_index(T), rng=Random.default_rng()) where {T<:SeriesBar}
+	if method == :locf
+		imp = Impute.LOCF()
+	elseif method == :sub
+		imp = Impute.Substitute(; statistic=Impute.defaultstats)
+	elseif method == :srs
+		imp = Impute.SRS(; rng=rng)
+	else
+		imp = default_imputer(T)
+	end
+	impute_old(bars, τ, to, imp; idxkey=idxkey)
 end
 
 # struct LocalSRS{R<:AbstractRNG} <: Impute.Imputor
