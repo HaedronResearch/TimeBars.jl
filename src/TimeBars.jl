@@ -14,6 +14,7 @@ import DocStringExtensions: TYPEDEF, TYPEDFIELDS, TYPEDSIGNATURES
 
 export Bar, IndexedBar, SeriesBar, TimeSeriesBar, TimeTypeBar
 export impute, index, lag, lead, part, regularity, roll, slide
+public imputer
 
 include("types/bars.jl")
 

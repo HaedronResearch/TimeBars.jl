@@ -101,9 +101,25 @@ end
 
 """
 $(TYPEDSIGNATURES)
+Same imputation for all fields (in-place)
+"""
+@stable function imputevalues!(mvals, imputer, _)
+	Impute.impute!(mvals, imputer)
+end
+
+"""
+$(TYPEDSIGNATURES)
+Per-field imputation (in-place)
+"""
+@stable function imputevalues!(mvals, imputer::NamedTuple, k::Symbol)
+	Impute.impute!(mvals, imputer[k])
+end
+
+"""
+$(TYPEDSIGNATURES)
 Imputation for a columntable of vectors (inner imputation only).
 """
-@stable function imputevec(bars::T, τ, imputer; idxkey)::T where {T<:NamedTuple}
+@stable function imputevec(bars::T, τ, imputer; idxkey::Symbol)::T where {T<:NamedTuple}
 	newidx, holes = fillin(getfield(bars, idxkey), τ)
 
 	newvals = Vector[]
@@ -112,7 +128,7 @@ Imputation for a columntable of vectors (inner imputation only).
 			vals = newidx
 		else
 			mvals = holedvalues(getfield(bars, k), holes)
-			vals = Impute.impute(mvals, imputer) |> disallowmissing
+			vals = imputevalues!(mvals, imputer, k) |> disallowmissing
 		end
 		push!(newvals, vals)
 	end
@@ -132,7 +148,7 @@ $(TYPEDSIGNATURES)
 Imputation for a columntable of vectors (inner and outer imputation).
 XXX - Untested
 """
-@stable function imputevec(bars::NamedTuple, τ, to::Pair, imputer; idxkey) where {T<:NamedTuple}
+@stable function imputevec(bars::T, τ, to::Pair, imputer; idxkey::Symbol)::T where {T<:NamedTuple}
 	newidx, holes = fillin(getfield(bars, idxkey), τ)
 	newidx, holesout = fillout(newidx, τ, to)
 
@@ -142,7 +158,7 @@ XXX - Untested
 			vals = newidx
 		else
 			mvals = holedvalues(getfield(bars, k), holes, holesout)
-			vals = Impute.impute(mvals, imputer) |> disallowmissing
+			vals = imputedvalues(mvals, imputer, k) |> disallowmissing
 		end
 		push!(newvals, vals)
 	end
@@ -155,10 +171,30 @@ StructVector imputation.
 Assumes single index bar type
 XXX - using a non-nothing `to` is untested.
 """
-@stable function imputevec(bars::StructVector{T}, τ, to=nothing, imputer=default_imputer(T); idxkey=default_index(T)) where {T<:SeriesBar}
+@stable function impute(bars::StructVector{T}, τ, to=nothing, imputer=imputer(T)) where {T<:SeriesBar}
 	nt = StructArrays.components(bars)
-	imputevec(nt, τ, to, imputer; idxkey=idxkey) |> StructVector{T}
+	imputevec(nt, τ, to, imputer; idxkey=index(T)) |> StructVector{T}
 end
+
+"""
+$(TYPEDSIGNATURES)
+Imputation.
+Assumes single index bar type
+"""
+@stable function impute(bars::StructVector{T}, τ, method::Symbol, to=nothing; rng=Random.default_rng()) where {T<:SeriesBar}
+	if method == :locf
+		imp = Impute.LOCF()
+	elseif method == :sub
+		imp = Impute.Substitute(; statistic=Impute.defaultstats)
+	elseif method == :srs
+		imp = Impute.SRS(; rng=rng)
+	else
+		imp = imputer(T)
+	end
+	impute(bars, τ, to, imp)
+end
+
+
 
 """
 $(TYPEDSIGNATURES)
@@ -182,10 +218,15 @@ end
 """
 $(TYPEDSIGNATURES)
 Do not expand outer index range. Used for dispatch.
+XXX - Deprecated
 """
 @stable expandouter(sa::StructArray, ::Any, ::Nothing; kwargs...) = sa
 
-@stable function impute_old(bars::StructVector{T}, τ, to, imputer=default_imputer(T); idxkey=default_index(T)) where {T<:SeriesBar}
+"""
+$(TYPEDSIGNATURES)
+XXX - Deprecated
+"""
+@stable function impute_old(bars::StructVector{T}, τ, to, imputer=imputer(T); idxkey=index(T)) where {T<:SeriesBar}
 	sa = imputevec(bars, τ, nothing, imputer; idxkey=idxkey)
 	sa = expandouter(sa, τ, to; idxkey=idxkey)
 	sa = Impute.impute(sa, imputer)
@@ -194,10 +235,9 @@ end
 
 """
 $(TYPEDSIGNATURES)
-Imputation.
-Assumes single index bar type
+XXX - Deprecated
 """
-@stable function impute(bars::StructVector{T}, τ, method::Symbol=:default, to=nothing; idxkey=default_index(T), rng=Random.default_rng()) where {T<:SeriesBar}
+@stable function impute_old(bars::StructVector{T}, τ, method::Symbol, to=nothing; idxkey=index(T), rng=Random.default_rng()) where {T<:SeriesBar}
 	if method == :locf
 		imp = Impute.LOCF()
 	elseif method == :sub
@@ -205,20 +245,7 @@ Assumes single index bar type
 	elseif method == :srs
 		imp = Impute.SRS(; rng=rng)
 	else
-		imp = default_imputer(T)
-	end
-	imputevec(bars, τ, to, imp; idxkey=idxkey)
-end
-
-@stable function impute_old(bars::StructVector{T}, τ, method::Symbol, to=nothing; idxkey=default_index(T), rng=Random.default_rng()) where {T<:SeriesBar}
-	if method == :locf
-		imp = Impute.LOCF()
-	elseif method == :sub
-		imp = Impute.Substitute(; statistic=Impute.defaultstats)
-	elseif method == :srs
-		imp = Impute.SRS(; rng=rng)
-	else
-		imp = default_imputer(T)
+		imp = imputer(T)
 	end
 	impute_old(bars, τ, to, imp; idxkey=idxkey)
 end
