@@ -2,7 +2,7 @@
 $(TYPEDSIGNATURES)
 Produce a `StructArray{<:NamedTuple}` equivalent where missings are allowed.
 """
-@stable function allowmiss(sa::StructArray)
+function allowmiss(sa::StructArray)
 	comps = StructArrays.components(sa)
 	nt = NamedTuple{keys(comps)}(map(allowmissing, values(comps)))
 	StructArray(nt)
@@ -12,7 +12,7 @@ end
 $(TYPEDSIGNATURES)
 Produce a `StructArray{<:T}` equivalent where missings are disallowed.
 """
-@stable function disallowmiss(T::Type, sa::StructArray)
+function disallowmiss(T::Type, sa::StructArray)
 	comps = StructArrays.components(sa)
 	nt = NamedTuple{keys(comps)}(map(disallowmissing, values(comps)))
 	StructArray{T}(nt)
@@ -24,7 +24,7 @@ Construct a `StructArray{<:NamedTuple}`, where only the provided `data` are defi
 
 This is not a `StructArray{<:NamedTuple}` constructor because we want to avoid type piracy.
 """
-@stable function emptysa(::Type{T}, data::Pair{Symbol, <:AbstractArray}...) where {T<:NamedTuple}
+function emptysa(::Type{T}, data::Pair{Symbol, <:AbstractArray}...) where {T<:NamedTuple}
 	arr = StructArray{T}(undef, size(last(first(data))))
 	for (k,v) in data
 		getproperty(arr, k) .= v

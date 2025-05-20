@@ -16,6 +16,8 @@ export Bar, IndexedBar, SeriesBar, TimeSeriesBar, TimeTypeBar
 export impute, index, lag, lead, part, regularity, roll, slide
 public imputer
 
+@stable default_mode="disable" begin
+
 include("types/bars.jl")
 
 include("defaults/check.jl")
@@ -40,5 +42,7 @@ include("methods/impute.jl")
 include("methods/index.jl")
 include("methods/laglead.jl")
 include("methods/part.jl")
+
+end
 
 end
