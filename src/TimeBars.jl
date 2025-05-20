@@ -19,7 +19,7 @@ public imputer
 include("types/bars.jl")
 
 include("defaults/check.jl")
-include("defaults/impute.jl")
+include("defaults/imputer.jl")
 include("defaults/index.jl")
 
 include("util/namedtuple.jl")
